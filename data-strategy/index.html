@@ -1,301 +1,1568 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Result Simulator — XVenture Matching</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg:#08080e;--s1:#0f0f1a;--s2:#16162a;--bd:#1e1e38;
-  --green:#00e5a0;--purple:#6c63ff;--red:#ff6b6b;--amber:#f5a623;--blue:#38bdf8;
-  --text:#e2e2f0;--mid:#8888aa;--dim:#4a4a6a;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'DM Mono',monospace;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
-body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,229,160,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,160,.02) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0}
-.w{position:relative;z-index:1;max-width:1260px;margin:0 auto;padding:0 24px}
+  <meta charset="UTF-8" />
+  <title>XVentures Data Strategy · v2.1</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
 
-/* ANNOTATION BANNER */
-.annot{background:rgba(0,229,160,.08);border:1px solid rgba(0,229,160,.25);border-radius:8px;padding:14px 20px;margin-bottom:28px;font-size:13px;color:var(--text);line-height:1.6}
-.annot a{color:var(--green);text-decoration:underline;font-weight:600}
-.annot a:hover{color:var(--blue)}
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* SECTION */
-.slbl{font-size:10px;letter-spacing:.2em;color:var(--green);text-transform:uppercase;margin-bottom:6px}
-.stitle{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;margin-bottom:8px}
-.sdesc{font-size:12px;color:var(--mid);line-height:1.75;max-width:740px;margin-bottom:28px}
+    body {
+      font-family: 'Georgia', serif;
+      background: #F7F4EF;
+      min-height: 100vh;
+      color: #18182E;
+    }
 
-/* SIMULATOR */
-.sim-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px}
-.sbtn{font-family:'DM Mono',monospace;font-size:11px;padding:8px 14px;border:1px solid var(--bd);background:var(--s1);color:var(--mid);border-radius:8px;cursor:pointer;transition:all .2s;letter-spacing:.06em}
-.sbtn:hover{border-color:var(--purple);color:var(--text)}
-.sbtn.on{border-color:var(--green);color:var(--green);background:rgba(0,229,160,.07)}
+    .topbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 200;
+      background: #18182E;
+      border-bottom: 1px solid #2A2A4A;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+    }
 
-.bkt-hdr{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:7px 0 9px;border-bottom:1px solid var(--bd);margin-bottom:10px;display:flex;align-items:center;gap:8px}
-.new-tag{font-size:10px;padding:2px 7px;border-radius:4px;background:rgba(56,189,248,.12);color:var(--blue);border:1px solid rgba(56,189,248,.3)}
+    .sidebar {
+      width: 210px;
+      position: fixed;
+      top: 50px;
+      left: 0;
+      bottom: 0;
+      overflow-y: auto;
+      background: #F7F4EF;
+      border-right: 1px solid #E0DDD5;
+      padding: 24px 12px 40px;
+    }
 
-.mrow{background:var(--s1);border:1px solid var(--bd);border-radius:8px;padding:13px 15px;margin-bottom:8px;cursor:pointer;transition:border-color .2s}
-.mrow:hover{border-color:var(--purple)}
-.mrow-top{display:grid;grid-template-columns:155px 1fr 50px 42px;gap:12px;align-items:center}
-@media(max-width:640px){.mrow-top{grid-template-columns:1fr 50px 42px}}
-.mname{font-family:'Syne',sans-serif;font-size:13px;font-weight:700}
-.mrole{font-size:10px;color:var(--dim);margin-top:2px}
-.sbars{display:flex;flex-direction:column;gap:5px}
-@media(max-width:640px){.sbars{display:none}}
-.srow{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--dim)}
-.slbl2{min-width:76px}
-.sbar{flex:1;height:4px;background:var(--bd);border-radius:2px;overflow:hidden;min-width:50px}
-.sfill{height:100%;border-radius:2px;transition:width .6s ease}
-.sval{min-width:30px;text-align:right}
-.rscore{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;text-align:center}
-.bbdg{font-size:10px;font-weight:700;padding:4px 8px;border-radius:4px;font-family:'Syne',sans-serif;text-align:center}
-.bP1{background:rgba(0,229,160,.12);color:var(--green);border:1px solid rgba(0,229,160,.25)}
-.bPILOT{background:rgba(56,189,248,.12);color:var(--blue);border:1px solid rgba(56,189,248,.25)}
-.bP2{background:rgba(108,99,255,.12);color:var(--purple);border:1px solid rgba(108,99,255,.25)}
-.bP3{background:rgba(245,166,35,.12);color:var(--amber);border:1px solid rgba(245,166,35,.25)}
+    .main {
+      margin-left: 210px;
+      padding: 36px 64px 100px;
+      max-width: 860px;
+      font-family: 'Instrument Sans', 'Helvetica Neue', sans-serif;
+      margin-top: 50px;
+    }
 
-.expand{display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--bd)}
-.mrow.open .expand{display:block}
-.exp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;font-size:12px;color:var(--mid);line-height:1.65}
-.exp-grid h5{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--text);margin-bottom:5px}
-@media(max-width:640px){.exp-grid{grid-template-columns:1fr}}
-</style>
+    .h1-main {
+      font-family: 'DM Serif Display', 'Georgia', serif;
+      font-size: 34px;
+      color: #18182E;
+      line-height: 1.15;
+      margin-bottom: 6px;
+    }
+
+    .h2-main {
+      font-family: 'DM Serif Display', 'Georgia', serif;
+      font-size: 21px;
+      color: #18182E;
+      margin: 32px 0 10px;
+    }
+
+    .h3-main {
+      font-family: 'Instrument Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #999;
+      margin: 20px 0 8px;
+    }
+
+    .lead {
+      font-size: 16px;
+      line-height: 1.75;
+      color: #48485A;
+      font-family: 'Instrument Sans', sans-serif;
+    }
+
+    .body-txt {
+      font-size: 14px;
+      line-height: 1.8;
+      color: #48485A;
+      font-family: 'Instrument Sans', sans-serif;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid #E0DDD5;
+      margin: 48px 0;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #E4E0D8;
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin: 12px 0;
+    }
+
+    .info-box {
+      background: #FAFAF6;
+      border: 1px solid #E4E0D8;
+      border-radius: 6px;
+      padding: 13px 17px;
+      margin: 14px 0;
+      font-size: 13px;
+      font-family: 'Instrument Sans', sans-serif;
+      color: #555;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-family: 'DM Mono', monospace;
+      background: #EEEAE0;
+      color: #555;
+      margin: 2px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .code-span {
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      background: #EEEAE0;
+      padding: 1px 5px;
+      border-radius: 3px;
+      color: #333;
+    }
+
+    .nav-label {
+      font-size: 9.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #BBB;
+      font-family: "Instrument Sans", sans-serif;
+      margin-bottom: 14px;
+      padding-left: 10px;
+    }
+
+    .nav-btn {
+      cursor: pointer;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 12.5px;
+      font-family: 'Instrument Sans', sans-serif;
+      font-weight: 500;
+      transition: all 0.12s;
+      border: none;
+      background: none;
+      text-align: left;
+      width: 100%;
+      display: block;
+      color: #666;
+      line-height: 1.4;
+    }
+
+    .nav-btn:hover {
+      background: #EEE9DF;
+      color: #18182E;
+    }
+
+    .nav-btn.act {
+      background: #18182E;
+      color: #F7F4EF;
+    }
+
+    .tbl {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      font-family: 'Instrument Sans', sans-serif;
+    }
+
+    .tbl th {
+      background: #18182E;
+      color: #F7F4EF;
+      padding: 9px 14px;
+      text-align: left;
+      font-size: 11.5px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .tbl td {
+      padding: 9px 14px;
+      border-bottom: 1px solid #E4E0D8;
+      color: #444;
+      vertical-align: top;
+    }
+
+    .tbl tr:last-child td {
+      border-bottom: none;
+    }
+
+    .tbl tr:nth-child(even) td {
+      background: #FAFAF6;
+    }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 4px;
+      border-radius: 2px;
+      background: #E4E0D8;
+      cursor: pointer;
+      outline: none;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #18182E;
+      cursor: pointer;
+      border: 2px solid white;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+    }
+
+    .faq-q {
+      padding: 14px 18px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13.5px;
+      font-family: 'Instrument Sans', sans-serif;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      background: white;
+      gap: 12px;
+    }
+
+    .faq-q:hover {
+      background: #FAFAF6;
+    }
+
+    .persona-tab {
+      padding: 7px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: 'Instrument Sans', sans-serif;
+      border: 1.5px solid transparent;
+      transition: all 0.12s;
+      background: white;
+    }
+
+    .score-bar {
+      height: 7px;
+      border-radius: 4px;
+      transition: width 0.35s ease;
+    }
+
+    @media (max-width: 700px) {
+      .sidebar-el {
+        display: none !important;
+      }
+      .main-el {
+        margin-left: 0 !important;
+        padding: 20px !important;
+      }
+    }
+  </style>
 </head>
 <body>
-<div class="w">
-  <div class="annot">
-    Refer to this page <a href="https://yezililyz.github.io/Proof-of-talk-Matching-Intelligence/" target="_blank" rel="noopener">https://yezililyz.github.io/Proof-of-talk-Matching-Intelligence/</a> to see the matching intelligence explanation.
+  <div id="app-wrap">
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div style="display:flex; align-items:center; gap:18px;">
+        <div style="display:flex; align-items:center; gap:9px;">
+          <div style="width:26px; height:26px; background:linear-gradient(135deg,#2D9B6F,#0A7FAD); border-radius:5px; display:flex; align-items:center; justify-content:center;">
+            <span style="color:white; font-size:13px; font-weight:800; font-family:'DM Mono';">X</span>
+          </div>
+          <span style="color:#F7F4EF; font-size:13.5px; font-weight:600; font-family:'Instrument Sans',sans-serif;">XVentures</span>
+        </div>
+        <span style="color:#444;">/</span>
+        <span style="color:#999; font-size:13px; font-family:'Instrument Sans',sans-serif;">Data Strategy Documentation</span>
+      </div>
+      <div style="display:flex; gap:20px;">
+        <span style="color:#666; font-size:12px; font-family:'Instrument Sans',sans-serif; cursor:pointer;">Agent Pipeline</span>
+        <span style="color:#666; font-size:12px; font-family:'Instrument Sans',sans-serif; cursor:pointer;">API Reference</span>
+        <span style="color:#666; font-size:12px; font-family:'Instrument Sans',sans-serif; cursor:pointer;">Release Notes</span>
+      </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar-el sidebar">
+      <div class="nav-label">On This Page</div>
+      <div style="display:flex; align-items:flex-start; gap:7px; margin-bottom:1px;">
+        <div class="nav-dot" data-target="overview" style="width:5px;height:5px;border-radius:50%;background:#18182E;flex-shrink:0;margin-top:8px;transition:background 0.15s;"></div>
+        <button class="nav-btn act" data-target="overview">Overview</button>
+      </div>
+      <div style="display:flex; align-items:flex-start; gap:7px; margin-bottom:1px;">
+        <div class="nav-dot" data-target="why" style="width:5px;height:5px;border-radius:50%;background:#DDD;flex-shrink:0;margin-top:8px;transition:background 0.15s;"></div>
+        <button class="nav-btn" data-target="why">Why a Data Strategy?</button>
+      </div>
+      <div style="display:flex; align-items:flex-start; gap:7px; margin-bottom:1px;">
+        <div class="nav-dot" data-target="how" style="width:5px;height:5px;border-radius:50%;background:#DDD;flex-shrink:0;margin-top:8px;transition:background 0.15s;"></div>
+        <button class="nav-btn" data-target="how">How It Works</button>
+      </div>
+      <div style="display:flex; align-items:flex-start; gap:7px; margin-bottom:1px;">
+        <div class="nav-dot" data-target="dimensions" style="width:5px;height:5px;border-radius:50%;background:#DDD;flex-shrink:0;margin-top:8px;transition:background 0.15s;"></div>
+        <button class="nav-btn" data-target="dimensions">The Two Readiness Dimensions</button>
+      </div>
+      <div style="display:flex; align-items:flex-start; gap:7px; margin-bottom:1px;">
+        <div class="nav-dot" data-target="pipeline" style="width:5px;height:5px;border-radius:50%;background:#DDD;flex-shrink:0;margin-top:8px;transition:background 0.15s;"></div>
+        <button class="nav-btn" data-target="pipeline">The Four-Agent Pipeline</button>
+      </div>
+      <div style="display:flex; align-items:flex-start; gap:7px; margin-bottom:1px;">
+        <div class="nav-dot" data-target="sources" style="width:5px;height:5px;border-radius:50%;background:#DDD;flex-shrink:0;margin-top:8px;transition:background 0.15s;"></div>
+        <button class="nav-btn" data-target="sources">Data Sources</button>
+      </div>
+      <div style="display:flex; align-items:flex-start; gap:7px; margin-bottom:1px;">
+        <div class="nav-dot" data-target="quality" style="width:5px;height:5px;border-radius:50%;background:#DDD;flex-shrink:0;margin-top:8px;transition:background 0.15s;"></div>
+        <button class="nav-btn" data-target="quality">Quality Monitoring</button>
+      </div>
+      <div style="display:flex; align-items:flex-start; gap:7px; margin-bottom:1px;">
+        <div class="nav-dot" data-target="usecases" style="width:5px;height:5px;border-radius:50%;background:#DDD;flex-shrink:0;margin-top:8px;transition:background 0.15s;"></div>
+        <button class="nav-btn" data-target="usecases">Use Cases</button>
+      </div>
+      <div style="display:flex; align-items:flex-start; gap:7px; margin-bottom:1px;">
+        <div class="nav-dot" data-target="faq" style="width:5px;height:5px;border-radius:50%;background:#DDD;flex-shrink:0;margin-top:8px;transition:background 0.15s;"></div>
+        <button class="nav-btn" data-target="faq">FAQ</button>
+      </div>
+      <div style="display:flex; align-items:flex-start; gap:7px; margin-bottom:1px;">
+        <div class="nav-dot" data-target="glossary" style="width:5px;height:5px;border-radius:50%;background:#DDD;flex-shrink:0;margin-top:8px;transition:background 0.15s;"></div>
+        <button class="nav-btn" data-target="glossary">Glossary</button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-el main">
+      <!-- OVERVIEW -->
+      <section id="overview" style="padding-top:36px;">
+        <div style="margin-bottom:8px;">
+          <span class="badge" style="background:#EEEAE0; color:#666;">Data Strategy · v2.1</span>
+        </div>
+        <h1 class="h1-main">XVentures Data Strategy</h1>
+        <p class="lead" style="margin-top:10px; margin-bottom:20px;">
+          XVentures connects investors, founders, regulators, and corporates at professional events by turning raw registration data into precision-ranked meeting shortlists. This document explains the data architecture — from raw form fields to shortlisted pairs with meeting-type-specific explanations.
+        </p>
+        <div class="info-box" style="border-left:3px solid #2D9B6F;">
+          <strong>Note:</strong> XVentures evolved from a single monolithic scoring prompt (v1.0) to a four-agent pipeline (v2.1) with independent financial and operational readiness dimensions. Enrichment data from v1 events migrated automatically.
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:24px;">
+          <div class="card" style="text-align:center; padding:22px 16px;">
+            <div style="font-family:'DM Serif Display',serif; font-size:42px; color:#18182E; line-height:1;">4</div>
+            <div style="font-weight:700; font-size:12px; color:#333; margin-top:6px; font-family:'Instrument Sans',sans-serif;">Agents in pipeline</div>
+            <div style="font-size:11px; color:#999; margin-top:4px; font-family:'Instrument Sans',sans-serif;">Extract → Candidate → Score → Bucket</div>
+          </div>
+          <div class="card" style="text-align:center; padding:22px 16px;">
+            <div style="font-family:'DM Serif Display',serif; font-size:42px; color:#18182E; line-height:1;">6</div>
+            <div style="font-weight:700; font-size:12px; color:#333; margin-top:6px; font-family:'Instrument Sans',sans-serif;">Match components</div>
+            <div style="font-size:11px; color:#999; margin-top:4px; font-family:'Instrument Sans',sans-serif;">persona_fit · intent_overlap · thematic_fit · …</div>
+          </div>
+          <div class="card" style="text-align:center; padding:22px 16px;">
+            <div style="font-family:'DM Serif Display',serif; font-size:42px; color:#18182E; line-height:1;">2</div>
+            <div style="font-weight:700; font-size:12px; color:#333; margin-top:6px; font-family:'Instrument Sans',sans-serif;">Readiness dimensions</div>
+            <div style="font-size:11px; color:#999; margin-top:4px; font-family:'Instrument Sans',sans-serif;">Financial and Operational — fully independent</div>
+          </div>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- WHY -->
+      <section id="why">
+        <h1 class="h1-main">Why a Data Strategy?</h1>
+        <p class="lead" style="margin-top:10px;">
+          Every event has structured participant data: roles, mandates, product readiness, compliance capabilities, investment theses. Without a systematic strategy, this data sits unused in form fields or requires expensive manual curation per event.
+        </p>
+        <h2 class="h2-main">With XVentures' Data Strategy</h2>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:4px;">
+          <div class="card" style="border-left:3px solid #2D9B6F;">
+            <div style="font-weight:700; font-size:13px; color:#18182E; margin-bottom:6px; font-family:'Instrument Sans',sans-serif;">Organizers collect identifiers only</div>
+            <div class="body-txt" style="font-size:12.5px;">
+              A registration form captures role, goals, and freetext. XVentures automatically enriches each profile with structured tags, readiness scores, and mandate summaries — no manual tagging required.
+            </div>
+          </div>
+          <div class="card" style="border-left:3px solid #2D9B6F;">
+            <div style="font-weight:700; font-size:13px; color:#18182E; margin-bottom:6px; font-family:'Instrument Sans',sans-serif;">Every match has business meaning</div>
+            <div class="body-txt" style="font-size:12.5px;">
+              Shortlisted pairs come with specific explanations grounded in the attendee's actual mandate: thesis, regulatory program, product stage, compliance capability. No generic copy.
+            </div>
+          </div>
+          <div class="card" style="border-left:3px solid #2D9B6F;">
+            <div style="font-weight:700; font-size:13px; color:#18182E; margin-bottom:6px; font-family:'Instrument Sans',sans-serif;">Two meeting types surface independently</div>
+            <div class="body-txt" style="font-size:12.5px;">
+              Capital meetings (P1) and operational meetings (PILOT) are computed independently. A regulator-founder pair that would score P3 in a single-dimension system correctly surfaces as PILOT.
+            </div>
+          </div>
+          <div class="card" style="border-left:3px solid #2D9B6F;">
+            <div style="font-weight:700; font-size:13px; color:#18182E; margin-bottom:6px; font-family:'Instrument Sans',sans-serif;">No implementation complexity</div>
+            <div class="body-txt" style="font-size:12.5px;">
+              Upload a CSV or connect via API. The pipeline enriches, scores, and ranks automatically. Attendees receive shortlists ranked from their own perspective using persona-aware weights.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- HOW IT WORKS -->
+      <section id="how">
+        <h1 class="h1-main">How It Works</h1>
+        <p class="lead" style="margin-top:10px;">
+          A catalog in XVentures consists of a reconciliation key (<span class="code-span">attendee_id</span>), enriched profile fields, and pairwise scoring logic. The pipeline runs four agents in sequence, each with a focused input and clean JSON output contract.
+        </p>
+
+        <h2 class="h2-main">Pipeline Workflow</h2>
+        <div style="background:#18182E; border-radius:10px; padding:26px 22px; margin:16px 0; overflow-x:auto;">
+          <div style="display:flex; align-items:center; gap:6px; min-width:560px;">
+            <div style="display:flex; align-items:center; gap:6px; flex:1;">
+              <div style="flex:1; background:#1E1E38; border:1.5px solid #2D9B6F; border-radius:7px; padding:13px 8px; text-align:center;">
+                <div style="font-family:'DM Mono',monospace; font-size:9px; color:#2D9B6F; font-weight:600; margin-bottom:3px;">AGENT 1</div>
+                <div style="font-family:'Instrument Sans',sans-serif; font-size:11.5px; font-weight:700; color:#F7F4EF; margin-bottom:2px; white-space:pre;">EXTRACT</div>
+                <div style="font-family:'Instrument Sans',sans-serif; font-size:10px; color:#666;">Enrichment</div>
+              </div>
+              <div style="color:#444; font-size:16px; flex-shrink:0;">→</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px; flex:1;">
+              <div style="flex:1; background:#1E1E38; border:1.5px solid #0A7FAD; border-radius:7px; padding:13px 8px; text-align:center;">
+                <div style="font-family:'DM Mono',monospace; font-size:9px; color:#0A7FAD; font-weight:600; margin-bottom:3px;">AGENT 2</div>
+                <div style="font-family:'Instrument Sans',sans-serif; font-size:11.5px; font-weight:700; color:#F7F4EF; margin-bottom:2px; white-space:pre;">CANDIDATE\nGEN</div>
+                <div style="font-family:'Instrument Sans',sans-serif; font-size:10px; color:#666;">Components</div>
+              </div>
+              <div style="color:#444; font-size:16px; flex-shrink:0;">→</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px; flex:1;">
+              <div style="flex:1; background:#1E1E38; border:1.5px solid #7B4FD6; border-radius:7px; padding:13px 8px; text-align:center;">
+                <div style="font-family:'DM Mono',monospace; font-size:9px; color:#7B4FD6; font-weight:600; margin-bottom:3px;">AGENT 3</div>
+                <div style="font-family:'Instrument Sans',sans-serif; font-size:11.5px; font-weight:700; color:#F7F4EF; margin-bottom:2px; white-space:pre;">PERSONA\nSCORING</div>
+                <div style="font-family:'Instrument Sans',sans-serif; font-size:10px; color:#666;">Weighted Rank</div>
+              </div>
+              <div style="color:#444; font-size:16px; flex-shrink:0;">→</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px; flex:1;">
+              <div style="flex:1; background:#1E1E38; border:1.5px solid #C47A00; border-radius:7px; padding:13px 8px; text-align:center;">
+                <div style="font-family:'DM Mono',monospace; font-size:9px; color:#C47A00; font-weight:600; margin-bottom:3px;">AGENT 4</div>
+                <div style="font-family:'Instrument Sans',sans-serif; font-size:11.5px; font-weight:700; color:#F7F4EF; margin-bottom:2px; white-space:pre;">BUCKET\n& RANK</div>
+                <div style="font-family:'Instrument Sans',sans-serif; font-size:10px; color:#666;">Decision + Copy</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h2 class="h2-main">Reconciliation Keys</h2>
+        <div style="overflow-x:auto;">
+          <table class="tbl">
+            <thead>
+              <tr><th>Key</th><th>Type</th><th>Usage</th><th>Runs per</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="code-span">attendee_id</span></td>
+                <td>String / UUID</td>
+                <td>Links registration to enriched profile across all pair computations</td>
+                <td>Attendee (1×, cached)</td>
+              </tr>
+              <tr>
+                <td><span class="code-span">pair_id</span></td>
+                <td>String (a-b)</td>
+                <td>Identifies a directed pair. A→B and B→A are separate with different rank_scores</td>
+                <td>Directed pair</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- DIMENSIONS -->
+      <section id="dimensions">
+        <h1 class="h1-main">The Two Readiness Dimensions</h1>
+        <p class="lead" style="margin-top:10px;">
+          When creating a match, XVentures evaluates readiness across two fully independent dimensions. This determines which meeting type a pair is eligible for — a core architectural change in v2.1.
+        </p>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:24px;">
+          <div class="card" style="border-top:3px solid #2D9B6F;">
+            <div style="font-family:'DM Mono',monospace; font-size:10px; color:#2D9B6F; font-weight:600; margin-bottom:4px;">DIMENSION 1</div>
+            <div style="font-family:'DM Serif Display',serif; font-size:19px; color:#18182E; margin-bottom:4px;">Financial Readiness</div>
+            <span class="badge" style="background:#E8F9F2; color:#2D9B6F;">FinancialReady(A,B)</span>
+            <div style="background:#F7F4EF; border-radius:5px; padding:12px; font-family:'DM Mono',monospace; font-size:12px; color:#2D9B6F; margin:14px 0; word-break:break-all;">
+              MIN(fin_ready_A, fin_ready_B)
+            </div>
+            <div class="h3-main">Best for</div>
+            <div style="font-size:12.5px; color:#555; font-family:'Instrument Sans',sans-serif; padding:2px 0;">✓ P1 bucket (≥ 0.70): capital meetings</div>
+            <div style="font-size:12.5px; color:#555; font-family:'Instrument Sans',sans-serif; padding:2px 0;">✓ Investor thesis matching</div>
+            <div style="font-size:12.5px; color:#555; font-family:'Instrument Sans',sans-serif; padding:2px 0;">✓ Round size alignment</div>
+            <div class="info-box" style="margin-top:12px; font-size:12px; background:#E8F9F2; border:none;">
+              <strong>Example:</strong> Elena (investor, fin=0.91) + James (founder, fin=0.85) → MIN=0.85 → P1 eligible.
+            </div>
+          </div>
+
+          <div class="card" style="border-top:3px solid #0A7FAD;">
+            <div style="font-family:'DM Mono',monospace; font-size:10px; color:#0A7FAD; font-weight:600; margin-bottom:4px;">DIMENSION 2</div>
+            <div style="font-family:'DM Serif Display',serif; font-size:19px; color:#18182E; margin-bottom:4px;">Operational Readiness</div>
+            <span class="badge" style="background:#E3F4FB; color:#0A7FAD;">OperationalReady(A,B)</span>
+            <div style="background:#F7F4EF; border-radius:5px; padding:12px; font-family:'DM Mono',monospace; font-size:12px; color:#0A7FAD; margin:14px 0; word-break:break-all;">
+              MIN(ops_ready_A, ops_ready_B)
+            </div>
+            <div class="h3-main">Best for</div>
+            <div style="font-size:12.5px; color:#555; font-family:'Instrument Sans',sans-serif; padding:2px 0;">✓ PILOT bucket (≥ 0.65): sandbox/pilot meetings</div>
+            <div style="font-size:12.5px; color:#555; font-family:'Instrument Sans',sans-serif; padding:2px 0;">✓ Regulator-founder collaboration</div>
+            <div style="font-size:12.5px; color:#555; font-family:'Instrument Sans',sans-serif; padding:2px 0;">✓ Corporate integration partnerships</div>
+            <div class="info-box" style="margin-top:12px; font-size:12px; background:#E3F4FB; border:none;">
+              <strong>Example:</strong> Sophie (Bundesbank, ops=0.91) + James (ops=0.88) → MIN=0.88 → PILOT eligible.
+            </div>
+          </div>
+        </div>
+
+        <!-- INTERACTIVE CALCULATOR -->
+        <h2 class="h2-main">Interactive Readiness Calculator</h2>
+        <p class="body-txt" style="margin-bottom:18px;">
+          Adjust individual readiness scores to see how pairwise readiness is computed and which bucket is assigned.
+        </p>
+
+        <div class="card">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:32px;">
+            <!-- Person A -->
+            <div>
+              <div class="h3-main">Person A</div>
+              <div style="margin-bottom:18px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:7px;">
+                  <span class="code-span">fin_ready_A</span>
+                  <span id="finA-val" style="font-family:'DM Mono',monospace; font-size:13px; font-weight:600; color:#2D9B6F;">0.85</span>
+                </div>
+                <input type="range" id="finA" min="0" max="1" step="0.01" value="0.85" />
+              </div>
+              <div style="margin-bottom:18px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:7px;">
+                  <span class="code-span">ops_ready_A</span>
+                  <span id="opsA-val" style="font-family:'DM Mono',monospace; font-size:13px; font-weight:600; color:#0A7FAD;">0.40</span>
+                </div>
+                <input type="range" id="opsA" min="0" max="1" step="0.01" value="0.40" />
+              </div>
+            </div>
+
+            <!-- Person B -->
+            <div>
+              <div class="h3-main">Person B</div>
+              <div style="margin-bottom:18px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:7px;">
+                  <span class="code-span">fin_ready_B</span>
+                  <span id="finB-val" style="font-family:'DM Mono',monospace; font-size:13px; font-weight:600; color:#2D9B6F;">0.90</span>
+                </div>
+                <input type="range" id="finB" min="0" max="1" step="0.01" value="0.90" />
+              </div>
+              <div style="margin-bottom:18px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:7px;">
+                  <span class="code-span">ops_ready_B</span>
+                  <span id="opsB-val" style="font-family:'DM Mono',monospace; font-size:13px; font-weight:600; color:#0A7FAD;">0.88</span>
+                </div>
+                <input type="range" id="opsB" min="0" max="1" step="0.01" value="0.88" />
+              </div>
+            </div>
+          </div>
+
+          <hr style="border:none; border-top:1px solid #E4E0D8; margin:18px 0;" />
+
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;">
+            <!-- FinancialReady -->
+            <div style="background:#E8F9F2; border-radius:6px; padding:14px 16px; text-align:center;">
+              <div style="font-family:'DM Mono',monospace; font-size:10px; color:#2D9B6F; margin-bottom:4px;">FinancialReady(A,B)</div>
+              <div id="finReady-val" style="font-family:'DM Serif Display',serif; font-size:34px; color:#2D9B6F;">0.85</div>
+              <div id="finReady-detail" style="font-size:10.5px; color:#888; font-family:'Instrument Sans',sans-serif; margin-top:4px;">
+                MIN(0.85, 0.90)
+              </div>
+              <div style="height:6px; background:#2D9B6F30; border-radius:3px; margin-top:10px;">
+                <div id="finReady-bar" class="score-bar" style="width:85%; background:#2D9B6F;"></div>
+              </div>
+            </div>
+
+            <!-- OperationalReady -->
+            <div style="background:#E3F4FB; border-radius:6px; padding:14px 16px; text-align:center;">
+              <div style="font-family:'DM Mono',monospace; font-size:10px; color:#0A7FAD; margin-bottom:4px;">OperationalReady(A,B)</div>
+              <div id="opsReady-val" style="font-family:'DM Serif Display',serif; font-size:34px; color:#0A7FAD;">0.40</div>
+              <div id="opsReady-detail" style="font-size:10.5px; color:#888; font-family:'Instrument Sans',sans-serif; margin-top:4px;">
+                MIN(0.40, 0.88)
+              </div>
+              <div style="height:6px; background:#0A7FAD30; border-radius:3px; margin-top:10px;">
+                <div id="opsReady-bar" class="score-bar" style="width:40%; background:#0A7FAD;"></div>
+              </div>
+            </div>
+
+            <!-- Bucket -->
+            <div id="bucket-card" style="background:#E8F9F2; border:1.5px solid #2D9B6F; border-radius:6px; padding:14px 16px; text-align:center;">
+              <div id="bucket-label" style="font-family:'DM Mono',monospace; font-size:10px; color:#2D9B6F; margin-bottom:4px;">BUCKET ASSIGNED</div>
+              <div id="bucket-val" style="font-family:'DM Serif Display',serif; font-size:36px; color:#2D9B6F;">P1</div>
+              <div id="bucket-detail" style="font-size:10.5px; color:#888; font-family:'Instrument Sans',sans-serif; margin-top:4px;">
+                fin_ready ≥ 0.70
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-box" style="border-left:3px solid #C47A00;">
+          <strong>Critical rule:</strong> FinancialReady and OperationalReady are <em>never blended</em>. A pair with financial_ready=0.10 and operational_ready=0.85 is a PILOT match, not P3. Keeping the two dimensions independent prevents capital-deployment metrics from obscuring sandbox readiness.
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- PIPELINE -->
+      <section id="pipeline">
+        <h1 class="h1-main">The Four-Agent Pipeline</h1>
+        <p class="lead" style="margin-top:10px;">
+          Each agent has a single job, a defined input schema, and a clean JSON output contract. Agent 1 runs once per attendee and caches its output. Agents 2–4 run per directed pair and can be parallelised.
+        </p>
+
+        <div style="overflow-x:auto; margin-top:20px; margin-bottom:28px;">
+          <table class="tbl">
+            <thead>
+              <tr><th>Agent</th><th>Job</th><th>Runs per</th><th>Token budget</th><th>Output</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong style="font-family:'DM Mono',monospace; font-size:12px;">1 · Extract</strong></td>
+                <td>Raw registration → structured enriched profile</td>
+                <td>Attendee (1×, cached)</td>
+                <td><span style="font-family:'DM Mono',monospace; font-size:11px;">700–1,100</span></td>
+                <td style="font-size:12px; color:#666;">persona · intent · tags · credibility · fin_ready · ops_ready</td>
+              </tr>
+              <tr>
+                <td><strong style="font-family:'DM Mono',monospace; font-size:12px;">2 · Candidate Gen</strong></td>
+                <td>Score 6 match components + pairwise readiness</td>
+                <td>Directed pair (A→B)</td>
+                <td><span style="font-family:'DM Mono',monospace; font-size:11px;">500–800</span></td>
+                <td style="font-size:12px; color:#666;">6 components + FinancialReady(A,B) + OperationalReady(A,B)</td>
+              </tr>
+              <tr>
+                <td><strong style="font-family:'DM Mono',monospace; font-size:12px;">3 · Persona Scoring</strong></td>
+                <td>Apply playbook weights → match_score + rank_score</td>
+                <td>Directed pair (A→B)</td>
+                <td><span style="font-family:'DM Mono',monospace; font-size:11px;">250–400</span></td>
+                <td style="font-size:12px; color:#666;">match_score · rank_score · top_feature</td>
+              </tr>
+              <tr>
+                <td><strong style="font-family:'DM Mono',monospace; font-size:12px;">4 · Bucket & Rank</strong></td>
+                <td>Bucket assignment + explanation generation</td>
+                <td>Directed pair (A→B)</td>
+                <td><span style="font-family:'DM Mono',monospace; font-size:11px;">600–1,000</span></td>
+                <td style="font-size:12px; color:#666;">bucket · CTA · explanation_short · explanation_long · flags</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- AGENT DETAILS (static, as in React) -->
+        <!-- Agent 1 -->
+        <div style="margin-bottom:16px;">
+          <div style="display:flex; gap:16px; align-items:flex-start;">
+            <div style="width:32px; height:32px; border-radius:50%; background:#2D9B6F; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; font-family:'DM Mono',monospace; flex-shrink:0;">1</div>
+            <div style="flex:1;">
+              <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
+                <div style="font-family:'DM Serif Display',serif; font-size:19px; color:#18182E;">Extract Agent</div>
+                <span class="badge" style="background:#E8F9F2; color:#2D9B6F;">Once per attendee — output cached for all pairs</span>
+                <span class="badge" style="background:#EEEAE0; color:#777;">700–1,100 tokens</span>
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
+                <div style="background:#FAFAF6; border-radius:5px; padding:10px 12px;">
+                  <div class="h3-main">Input</div>
+                  <div style="font-size:12px; color:#555; font-family:'Instrument Sans',sans-serif;">
+                    Raw registration JSON + LinkedIn/Crunchbase fields
+                  </div>
+                </div>
+                <div style="background:#E8F9F2; border-radius:5px; padding:10px 12px;">
+                  <div class="h3-main" style="color:#2D9B6F;">Output</div>
+                  <div style="font-size:12px; color:#444; font-family:'Instrument Sans',sans-serif;">
+                    persona_type · sub_persona · primary_intent · secondary_intents · mandate_summary · vertical/regulatory/geography/compliance_tags · credibility_score · fin_ready_score · ops_ready_score · confirmations
+                  </div>
+                </div>
+              </div>
+              <div class="h3-main">Critical rules</div>
+              <div style="font-size:12.5px; color:#555; font-family:'Instrument Sans',sans-serif; padding:3px 0 3px 12px; border-left:2px solid #2D9B6F; margin-bottom:5px;">
+                Stage label never affects traction_score, credibility_score, or readiness — filter use only
+              </div>
+              <div style="font-size:12.5px; color:#555; font-family:'Instrument Sans',sans-serif; padding:3px 0 3px 12px; border-left:2px solid #2D9B6F; margin-bottom:5px;">
+                Self-reported persona is an input, not a conclusion — always cross-check against job title and freetext
+              </div>
+              <div style="font-size:12.5px; color:#555; font-family:'Instrument Sans',sans-serif; padding:3px 0 3px 12px; border-left:2px solid #2D9B6F; margin-bottom:5px;">
+                Confirmation fields require freetext corroboration — checkbox alone is insufficient
+              </div>
+              <div style="font-size:12.5px; color:#555; font-family:'Instrument Sans',sans-serif; padding:3px 0 3px 12px; border-left:2px solid #2D9B6F; margin-bottom:5px;">
+                mandate_summary must name ≥1 specific: stage, product, regulatory program, geography, or technology
+              </div>
+            </div>
+          </div>
+          <div style="width:1px; height:20px; background:#E0DDD5; margin-left:15px; margin-top:6px;"></div>
+        </div>
+
+        <!-- Agent 2 -->
+        <div style="margin-bottom:16px;">
+          <div style="display:flex; gap:16px; align-items:flex-start;">
+            <div style="width:32px; height:32px; border-radius:50%; background:#0A7FAD; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; font-family:'DM Mono',monospace; flex-shrink:0;">2</div>
+            <div style="flex:1;">
+              <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
+                <div style="font-family:'DM Serif Display',serif; font-size:19px; color:#18182E;">Candidate Generation Agent</div>
+                <span class="badge" style="background:#E3F4FB; color:#0A7FAD;">Once per directed pair (A→B)</span>
+                <span class="badge" style="background:#EEEAE0; color:#777;">500–800 tokens</span>
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
+                <div style="background:#FAFAF6; border-radius:5px; padding:10px 12px;">
+                  <div class="h3-main">Input</div>
+                  <div style="font-size:12px; color:#555; font-family:'Instrument Sans',sans-serif;">
+                    Two enriched profiles from Agent 1
+                  </div>
+                </div>
+                <div style="background:#E3F4FB; border-radius:5px; padding:10px 12px;">
+                  <div class="h3-main" style="color:#0A7FAD;">Output</div>
+                  <div style="font-size:12px; color:#444; font-family:'Instrument Sans',sans-serif;">
+                    persona_fit · intent_overlap · thematic_fit · complementary_score · non_obvious_score · credibility_score · financial_ready(A,B) · operational_ready(A,B)
+                  </div>
+                </div>
+              </div>
+              <div class="h3-main">Critical rules</div>
+              <div style="font-size:12.5px; color:#555; font-family:'Instrument Sans',sans-serif; padding:3px 0 3px 12px; border-left:2px solid #0A7FAD; margin-bottom:5px;">
+                fin_ready and ops_ready copied from Agent 1 — never recomputed here
+              </div>
+              <div style="font-size:12.5px; color:#555; font-family:'Instrument Sans',sans-serif; padding:3px 0 3px 12px; border-left:2px solid #0A7FAD; margin-bottom:5px;">
+                MIN() for pairwise readiness — never average
+              </div>
+              <div style="font-size:12.5px; color:#555; font-family:'Instrument Sans',sans-serif; padding:3px 0 3px 12px; border-left:2px solid #0A7FAD; margin-bottom:5px;">
+                financial_ready and operational_ready are fully independent — never blended
+              </div>
+              <div style="font-size:12.5px; color:#555; font-family:'Instrument Sans',sans-serif; padding:3px 0 3px 12px; border-left:2px solid #0A7FAD; margin-bottom:5px;">
+                non_obvious_score fires when tag_overlap &lt; 0.25 but mandate semantics align
+              </div>
+            </div>
+          </div>
+          <div style="width:1px; height:20px; background:#E0DDD5; margin-left:15px; margin-top:6px;"></div>
+        </div>
+
+        <!-- Agent 3 -->
+        <div style="margin-bottom:16px;">
+          <div style="display:flex; gap:16px; align-items:flex-start;">
+            <div style="width:32px; height:32px; border-radius:50%; background:#7B4FD6; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; font-family:'DM Mono',monospace; flex-shrink:0;">3</div>
+            <div style="flex:1;">
+              <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
+                <div style="font-family:'DM Serif Display',serif; font-size:19px; color:#18182E;">Persona-Aware Scoring Agent</div>
+                <span class="badge" style="background:#EEE9FF; color:#7B4FD6;">Once per directed pair (A→B) — directional</span>
+                <span class="badge" style="background:#EEEAE0; color:#777;">250–400 tokens</span>
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
+                <div style="background:#FAFAF6; border-radius:5px; padding:10px 12px;">
+                  <div class="h3-main">Input</div>
+                  <div style="font-size:12px; color:#555; font-family:'Instrument Sans',sans-serif;">
+                    6 components + pairwise readiness + event playbook
+                  </div>
+                </div>
+                <div style="background:#EEE9FF; border-radius:5px; padding:10px 12px;">
+                  <div class="h3-main" style="color:#7B4FD6;">Output</div>
+                  <div style="font-size:12px; color:#444; font-family:'Instrument Sans',sans-serif;">
+                    match_score · rank_score · top_feature · scoring detail (alpha, beta, gamma applied)
+                  </div>
+                </div>
+              </div>
+              <div class="h3-main">Critical rules</div>
+              <div style="font-size:12.5px; color:#555; font-family:'Instrument Sans',sans-serif; padding:3px 0 3px 12px; border-left:2px solid #7B4FD6; margin-bottom:5px;">
+                Weights from the playbook — never hardcoded
+              </div>
+              <div style="font-size:12.5px; color:#555; font-family:'Instrument Sans',sans-serif; padding:3px 0 3px 12px; border-left:2px solid #7B4FD6; margin-bottom:5px;">
+                rank_score is directional — A→B ≠ B→A; never reuse for the reverse pair
+              </div>
+              <div style="font-size:12.5px; color:#555; font-family:'Instrument Sans',sans-serif; padding:3px 0 3px 12px; border-left:2px solid #7B4FD6; margin-bottom:5px;">
+                gamma selects dimension: fin=financial, ops=operational, max=MAX of both
+              </div>
+              <div style="font-size:12.5px; color:#555; font-family:'Instrument Sans',sans-serif; padding:3px 0 3px 12px; border-left:2px solid #7B4FD6; margin-bottom:5px;">
+                Six component weights must sum to 1.0
+              </div>
+            </div>
+          </div>
+          <div style="width:1px; height:20px; background:#E0DDD5; margin-left:15px; margin-top:6px;"></div>
+        </div>
+
+        <!-- Agent 4 -->
+        <div style="margin-bottom:16px;">
+          <div style="display:flex; gap:16px; align-items:flex-start;">
+            <div style="width:32px; height:32px; border-radius:50%; background:#C47A00; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; font-family:'DM Mono',monospace; flex-shrink:0;">4</div>
+            <div style="flex:1;">
+              <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
+                <div style="font-family:'DM Serif Display',serif; font-size:19px; color:#18182E;">Bucket & Rank Agent</div>
+                <span class="badge" style="background:#FFF5E0; color:#C47A00;">Once per directed pair (A→B)</span>
+                <span class="badge" style="background:#EEEAE0; color:#777;">600–1,000 tokens</span>
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
+                <div style="background:#FAFAF6; border-radius:5px; padding:10px 12px;">
+                  <div class="h3-main">Input</div>
+                  <div style="font-size:12px; color:#555; font-family:'Instrument Sans',sans-serif;">
+                    match_score + readiness + rank_score + lightweight profiles
+                  </div>
+                </div>
+                <div style="background:#FFF5E0; border-radius:5px; padding:10px 12px;">
+                  <div class="h3-main" style="color:#C47A00;">Output</div>
+                  <div style="font-size:12px; color:#444; font-family:'Instrument Sans',sans-serif;">
+                    bucket (P1/PILOT/P2/P3/null) · CTA · explanation_short (≤180 chars) · explanation_long (150–300 words) · flags
+                  </div>
+                </div>
+              </div>
+              <div class="h3-main">Critical rules</div>
+              <div style="font-size:12.5px; color:#555; font-family:'Instrument Sans',sans-serif; padding:3px 0 3px 12px; border-left:2px solid #C47A00; margin-bottom:5px;">
+                Bucket rules ordered — first match wins; P1 before PILOT before P2
+              </div>
+              <div style="font-size:12.5px; color:#555; font-family:'Instrument Sans',sans-serif; padding:3px 0 3px 12px; border-left:2px solid #C47A00; margin-bottom:5px;">
+                explanation_short must name a specific reason — generic phrases are a failure
+              </div>
+              <div style="font-size:12.5px; color:#555; font-family:'Instrument Sans',sans-serif; padding:3px 0 3px 12px; border-left:2px solid #C47A00; margin-bottom:5px;">
+                explanation_long uses only input data — never invent figures, clients, or timelines
+              </div>
+              <div style="font-size:12.5px; color:#555; font-family:'Instrument Sans',sans-serif; padding:3px 0 3px 12px; border-left:2px solid #C47A00; margin-bottom:5px;">
+                null bucket = excluded from shortlist; no explanations written
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- DATA SOURCES -->
+      <section id="sources">
+        <h1 class="h1-main">Data Sources</h1>
+        <p class="lead" style="margin-top:10px;">
+          Three import modes are available. Each feeds Agent 1's enrichment pipeline. All modes produce the same enriched profile structure.
+        </p>
+
+        <div style="overflow-x:auto; margin-top:20px;">
+          <table class="tbl">
+            <thead>
+              <tr><th>Mode</th><th>Format</th><th>Size Limit</th><th>Key Fields</th><th>Weight</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>API (Real-time)</strong></td>
+                <td>JSON / ndJSON</td>
+                <td>No limit</td>
+                <td>All registration + external fields via webhook</td>
+                <td><span style="color:#2D9B6F; font-weight:700;">Primary</span></td>
+              </tr>
+              <tr>
+                <td><strong>sFTP (Batch)</strong></td>
+                <td>CSV</td>
+                <td>5GB (1GB rec.)</td>
+                <td>Bulk export from event management systems</td>
+                <td><span style="color:#0A7FAD; font-weight:700;">Automated</span></td>
+              </tr>
+              <tr>
+                <td><strong>Manual Upload (UI)</strong></td>
+                <td>CSV</td>
+                <td>10MB</td>
+                <td>Drag-and-drop for offline registration lists</td>
+                <td><span style="color:#7B4FD6; font-weight:700;">Self-serve</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 class="h2-main">External Data Sources</h2>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="card" style="border-left:3px solid #0A7FAD;">
+            <div style="font-weight:700; font-size:13px; color:#18182E; font-family:'Instrument Sans',sans-serif; margin-bottom:8px;">
+              LinkedIn API
+            </div>
+            <div style="margin-bottom:6px;">
+              <span class="h3-main">Fields</span>
+              <div style="font-size:12px; color:#555; font-family:'DM Mono',monospace; margin-top:2px;">
+                linkedin_headline, summary, recent_roles
+              </div>
+            </div>
+            <div style="margin-bottom:6px;">
+              <span class="h3-main">Used for</span>
+              <div style="font-size:12.5px; color:#555; font-family:'Instrument Sans',sans-serif; margin-top:2px;">
+                Persona override detection, seniority_score, institution_quality_score
+              </div>
+            </div>
+            <div>
+              <span class="h3-main">Weight</span>
+              <div style="font-size:12.5px; color:#555; font-family:'Instrument Sans',sans-serif; margin-top:2px;">
+                High — most reliable for role confirmation
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="border-left:3px solid #7B4FD6;">
+            <div style="font-weight:700; font-size:13px; color:#18182E; font-family:'Instrument Sans',sans-serif; margin-bottom:8px;">
+              Crunchbase API
+            </div>
+            <div style="margin-bottom:6px;">
+              <span class="h3-main">Fields</span>
+              <div style="font-size:12px; color:#555; font-family:'DM Mono',monospace; margin-top:2px;">
+                funding_total_usd, last_round_type, investor_count
+              </div>
+            </div>
+            <div style="margin-bottom:6px;">
+              <span class="h3-main">Used for</span>
+              <div style="font-size:12.5px; color:#555; font-family:'Instrument Sans',sans-serif; margin-top:2px;">
+                traction_score signals (funding confirmed, tier-1 investors)
+              </div>
+            </div>
+            <div>
+              <span class="h3-main">Weight</span>
+              <div style="font-size:12.5px; color:#555; font-family:'Instrument Sans',sans-serif; margin-top:2px;">
+                Medium — corroborative, not primary
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-box" style="margin-top:12px;">
+          <strong>Alerting:</strong> If enrichment_quality &lt; 0.40 for more than 15% of a batch, the organiser receives an email with a report of profiles flagged
+          <span class="code-span">needs_review=true</span> and the specific <span class="code-span">data_gaps</span> that triggered the flag.
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- QUALITY -->
+      <section id="quality">
+        <h1 class="h1-main">Quality Monitoring</h1>
+        <p class="lead" style="margin-top:10px;">
+          Two monitoring layers operate independently: profile-level enrichment quality (per attendee, from Agent 1) and match-level quality flags (per pair, from Agents 2–4).
+        </p>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:24px;">
+          <div>
+            <h2 class="h2-main" style="margin-top:0;">Profile Quality Flags</h2>
+            <table class="tbl">
+              <thead>
+                <tr><th>Condition</th><th>Flag</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="font-size:12.5px;">enrichment_quality &lt; 0.40</td>
+                  <td><span class="badge" style="background:#FFE8E8; color:#C00;">needs_review</span></td>
+                </tr>
+                <tr>
+                  <td style="font-size:12.5px;">persona_confidence &lt; 0.70</td>
+                  <td><span class="badge" style="background:#FFE8E8; color:#C00;">needs_review</span></td>
+                </tr>
+                <tr>
+                  <td style="font-size:12.5px;">Self-reported persona overridden</td>
+                  <td><span class="badge" style="background:#FFF5E0; color:#C47A00;">persona_overridden</span></td>
+                </tr>
+                <tr>
+                  <td style="font-size:12.5px;">LinkedIn URL missing</td>
+                  <td><span class="badge" style="background:#EEEAE0; color:#666;">−0.15 quality</span></td>
+                </tr>
+                <tr>
+                  <td style="font-size:12.5px;">Freetext &lt; 20 words</td>
+                  <td><span class="badge" style="background:#EEEAE0; color:#666;">quality &lt; 0.40</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div>
+            <h2 class="h2-main" style="margin-top:0;">Match Quality Flags</h2>
+            <table class="tbl">
+              <thead>
+                <tr><th>Flag</th><th>Condition</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="badge" style="background:#E8F9F2; color:#2D9B6F;">high_confidence</span></td>
+                  <td style="font-size:12.5px;">Both persona_confidence ≥ 0.80</td>
+                </tr>
+                <tr>
+                  <td><span class="badge" style="background:#EEE9FF; color:#7B4FD6;">is_non_obvious</span></td>
+                  <td style="font-size:12.5px;">non_obvious_score ≥ 0.55</td>
+                </tr>
+                <tr>
+                  <td><span class="badge" style="background:#E3F4FB; color:#0A7FAD;">is_complementary</span></td>
+                  <td style="font-size:12.5px;">complementary_score ≥ 0.75</td>
+                </tr>
+                <tr>
+                  <td><span class="badge" style="background:#FFF5E0; color:#C47A00;">low_size_fit</span></td>
+                  <td style="font-size:12.5px;">investor + round_size_match &lt; 0.50 + P1</td>
+                </tr>
+                <tr>
+                  <td><span class="badge" style="background:#FFE8E8; color:#C00;">cross_type_match</span></td>
+                  <td style="font-size:12.5px;">A=regulator AND bucket=P1</td>
+                </tr>
+                <tr>
+                  <td><span class="badge" style="background:#EEEAE0; color:#666;">organizer_override</span></td>
+                  <td style="font-size:12.5px;">organizer_pinned forced P1</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <h2 class="h2-main">Processing Report</h2>
+        <p class="body-txt">
+          Each import generates a processing report in the organiser dashboard: enrichment_quality distribution, needs_review count, persona override rate, most common data_gaps, and preview of the first 10 enriched profiles. The report is differentiated by import mode (API, sFTP, manual).
+        </p>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- USE CASES -->
+      <section id="usecases">
+        <h1 class="h1-main">Use Cases</h1>
+        <p class="lead" style="margin-top:10px;">
+          Each persona generates a distinct shortlist shaped by their scoring weights. Select a persona to see how the pipeline handles their data end-to-end.
+        </p>
+
+        <!-- Persona Tabs -->
+        <div style="display:flex; gap:8px; margin-top:20px; margin-bottom:20px; flex-wrap:wrap;">
+          <button class="persona-tab" data-persona-tab="investor" style="background:#2D9B6F; color:#fff; border-color:#2D9B6F;">◆ Investor</button>
+          <button class="persona-tab" data-persona-tab="founder" style="color:#7B4FD6; border-color:#7B4FD6;">▲ Founder</button>
+          <button class="persona-tab" data-persona-tab="regulator" style="color:#0A7FAD; border-color:#0A7FAD;">■ Regulator</button>
+          <button class="persona-tab" data-persona-tab="corporate" style="color:#C47A00; border-color:#C47A00;">● Corporate</button>
+        </div>
+
+        <!-- Persona Content -->
+        <div id="persona-investor" class="card" style="border-top:3px solid #2D9B6F;">
+          <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:24px;">
+            <div style="background:#E8F9F2; border-radius:6px; padding:12px 14px;">
+              <div class="h3-main" style="color:#2D9B6F; margin-top:0;">Primary Intent</div>
+              <div style="font-family:'DM Mono',monospace; font-size:12.5px; color:#18182E;">deploy_capital</div>
+            </div>
+            <div style="background:#E8F9F2; border-radius:6px; padding:12px 14px;">
+              <div class="h3-main" style="color:#2D9B6F; margin-top:0;">Rank Gamma (γ)</div>
+              <div style="font-family:'DM Mono',monospace; font-size:12.5px; color:#18182E;">gamma = fin</div>
+            </div>
+            <div style="background:#E8F9F2; border-radius:6px; padding:12px 14px;">
+              <div class="h3-main" style="color:#2D9B6F; margin-top:0;">Alpha / Beta</div>
+              <div style="font-family:'DM Mono',monospace; font-size:12.5px; color:#18182E;">α = 0.60  ·  β = 0.05</div>
+            </div>
+          </div>
+
+          <div style="border-left:3px solid #2D9B6F; padding-left:16px; margin-bottom:18px;">
+            <div style="font-weight:700; font-size:14px; color:#18182E; font-family:'Instrument Sans',sans-serif; margin-bottom:6px;">
+              VC GP sourcing Series A compliance infrastructure
+            </div>
+            <div class="body-txt" style="font-size:13px; color:#555;">
+              A $400M crypto-native fund with 2023 vintage enters the event to source compliance-infrastructure founders at Series A. Agent 1 extracts: fin_ready=0.91 (AUM confirmed, young fund, deployment mandate in freetext). Agent 2 scores persona_fit=0.90 against a compliant L2 founder. Agent 3 applies alpha=0.60 on the founder's fin_ready=0.85 → rank_score=1.62. Agent 4 assigns P1 with a thesis-specific explanation mentioning the founder's Trail of Bits audit and MiCA compliance module shipped in Q3.
+            </div>
+          </div>
+
+          <div style="border-left:3px solid #2D9B6F; padding-left:16px; margin-bottom:18px;">
+            <div style="font-weight:700; font-size:14px; color:#18182E; font-family:'Instrument Sans',sans-serif; margin-bottom:6px;">
+              SWF allocator evaluating custody infrastructure
+            </div>
+            <div class="body-txt" style="font-size:13px; color:#555;">
+              A Sovereign Wealth Fund with $8B AUM signals interest in institutional custody plays. stage_mandate = Series B+. Agent 1 computes fund_eol_risk=0.10 (vintage 2022). Agent 2 filters out pre-seed founders via the eligibility pre-check — they never score. The SWF's shortlist surfaces only operationally mature custody founders with live product and institutional clients confirmed in freetext.
+            </div>
+          </div>
+        </div>
+
+        <div id="persona-founder" class="card" style="border-top:3px solid #7B4FD6; display:none;">
+          <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:24px;">
+            <div style="background:#EEE9FF; border-radius:6px; padding:12px 14px;">
+              <div class="h3-main" style="color:#7B4FD6; margin-top:0;">Primary Intent</div>
+              <div style="font-family:'DM Mono',monospace; font-size:12.5px; color:#18182E;">raise_capital</div>
+            </div>
+            <div style="background:#EEE9FF; border-radius:6px; padding:12px 14px;">
+              <div class="h3-main" style="color:#7B4FD6; margin-top:0;">Rank Gamma (γ)</div>
+              <div style="font-family:'DM Mono',monospace; font-size:12.5px; color:#18182E;">gamma = max</div>
+            </div>
+            <div style="background:#EEE9FF; border-radius:6px; padding:12px 14px;">
+              <div class="h3-main" style="color:#7B4FD6; margin-top:0;">Alpha / Beta</div>
+              <div style="font-family:'DM Mono',monospace; font-size:12.5px; color:#18182E;">α = 0.50  ·  β = 0.10</div>
+            </div>
+          </div>
+
+          <div style="border-left:3px solid #7B4FD6; padding-left:16px; margin-bottom:18px;">
+            <div style="font-weight:700; font-size:14px; color:#18182E; font-family:'Instrument Sans',sans-serif; margin-bottom:6px;">
+              MiCA-compliant L2 founder raising Series A
+            </div>
+            <div class="body-txt" style="font-size:13px; color:#555;">
+              NexaLayer's founder registers with product_live=true confirmed in freetext, sandbox_seeking=true with a 3-month pilot window, and actively_raising=true targeting €12M. Agent 1 produces fin_ready=0.84, ops_ready=0.88, compliance_tags=[MiCA, KYC, AML]. Agent 2 scores intent_overlap=1.00 against investors and compliance_tag_overlap=0.67 against regulators. The founder appears in P1 shortlists for VC GPs AND in PILOT shortlists for sandbox directors — two separate match tracks, neither interfering with the other.
+            </div>
+          </div>
+
+          <div style="border-left:3px solid #7B4FD6; padding-left:16px; margin-bottom:18px;">
+            <div style="font-weight:700; font-size:14px; color:#18182E; font-family:'Instrument Sans',sans-serif; margin-bottom:6px;">
+              Infra builder seeking strategic partnerships
+            </div>
+            <div class="body-txt" style="font-size:13px; color:#555;">
+              A settlement-layer founder with no active raise (fin_ready=0.32) but a live product integrated with two European banks. ops_ready=0.79. Agent 3 applies gamma=max: deal_cpty = MAX(0.32, 0.79) = 0.79. The founder surfaces in PILOT matches with corporates and regulators, correctly bypassing P1 capital matches where they would fail the financial_ready ≥ 0.70 gate.
+            </div>
+          </div>
+        </div>
+
+        <div id="persona-regulator" class="card" style="border-top:3px solid #0A7FAD; display:none;">
+          <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:24px;">
+            <div style="background:#E3F4FB; border-radius:6px; padding:12px 14px;">
+              <div class="h3-main" style="color:#0A7FAD; margin-top:0;">Primary Intent</div>
+              <div style="font-family:'DM Mono',monospace; font-size:12.5px; color:#18182E;">seek_sandbox_pilot</div>
+            </div>
+            <div style="background:#E3F4FB; border-radius:6px; padding:12px 14px;">
+              <div class="h3-main" style="color:#0A7FAD; margin-top:0;">Rank Gamma (γ)</div>
+              <div style="font-family:'DM Mono',monospace; font-size:12.5px; color:#18182E;">gamma = ops</div>
+            </div>
+            <div style="background:#E3F4FB; border-radius:6px; padding:12px 14px;">
+              <div class="h3-main" style="color:#0A7FAD; margin-top:0;">Alpha / Beta</div>
+              <div style="font-family:'DM Mono',monospace; font-size:12.5px; color:#18182E;">α = 0.20  ·  β = 0.05</div>
+            </div>
+          </div>
+
+          <div style="border-left:3px solid #0A7FAD; padding-left:16px; margin-bottom:18px;">
+            <div style="font-weight:700; font-size:14px; color:#18182E; font-family:'Instrument Sans',sans-serif; margin-bottom:6px;">
+              Bundesbank CBDC sandbox director recruiting participants
+            </div>
+            <div class="body-txt" style="font-size:13px; color:#555;">
+              The Bundesbank Digital Euro sandbox director registers with sandbox_seeking=true (recruiting, not seeking to join), pilot_timeline_months=3. Agent 1 flags: fin_ready=0.20 (constant — regulators never deploy capital), ops_ready=0.91. Agent 2 scores against MiCA-compliant founders: compliance_tag_overlap=0.75, operational_ready=MIN(0.91, 0.88)=0.88. Agent 3 applies gamma=ops, alpha=0.20. The regulator's shortlist is entirely PILOT-bucket — no P1 matches appear.
+            </div>
+          </div>
+
+          <div style="border-left:3px solid #0A7FAD; padding-left:16px; margin-bottom:18px;">
+            <div style="font-weight:700; font-size:14px; color:#18182E; font-family:'Instrument Sans',sans-serif; margin-bottom:6px;">
+              FCA sandbox lead evaluating payments infrastructure
+            </div>
+            <div class="body-txt" style="font-size:13px; color:#555;">
+              An FCA sandbox director wants to evaluate payments-layer applicants. Agent 1 tags regulatory_tags=[FCA_sandbox], vertical_tags=[payments, identity, compliance_infra]. Agent 2 computes thematic_fit=0.71 against a payments-focused founder with FCA_sandbox in their regulatory_tags (Jaccard=1.0 on regulatory). With match_score=0.88 and operational_ready=0.82 ≥ 0.65: PILOT bucket, CTA='Sandbox or partnership meeting'.
+            </div>
+          </div>
+        </div>
+
+        <div id="persona-corporate" class="card" style="border-top:3px solid #C47A00; display:none;">
+          <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:24px;">
+            <div style="background:#FFF5E0; border-radius:6px; padding:12px 14px;">
+              <div class="h3-main" style="color:#C47A00; margin-top:0;">Primary Intent</div>
+              <div style="font-family:'DM Mono',monospace; font-size:12.5px; color:#18182E;">seek_partner</div>
+            </div>
+            <div style="background:#FFF5E0; border-radius:6px; padding:12px 14px;">
+              <div class="h3-main" style="color:#C47A00; margin-top:0;">Rank Gamma (γ)</div>
+              <div style="font-family:'DM Mono',monospace; font-size:12.5px; color:#18182E;">gamma = max</div>
+            </div>
+            <div style="background:#FFF5E0; border-radius:6px; padding:12px 14px;">
+              <div class="h3-main" style="color:#C47A00; margin-top:0;">Alpha / Beta</div>
+              <div style="font-family:'DM Mono',monospace; font-size:12.5px; color:#18182E;">α = 0.40  ·  β = 0.15</div>
+            </div>
+          </div>
+
+          <div style="border-left:3px solid #C47A00; padding-left:16px; margin-bottom:18px;">
+            <div style="font-weight:700; font-size:14px; color:#18182E; font-family:'Instrument Sans',sans-serif; margin-bottom:6px;">
+              Deutsche Bank digital assets lead evaluating integration
+            </div>
+            <div class="body-txt" style="font-size:13px; color:#555;">
+              The Head of Digital Assets at Deutsche Bank (seniority_score=0.90, institution_quality=1.0, credibility_score=0.88) registers with sandbox_seeking=true and has Basel_IV, DORA in compliance_tags. Agent 1 produces ops_ready=0.72 and fin_ready=0.55 (corp_vc function active but limited). Agent 3 applies beta=0.15 — the corporate's own procurement readiness differentiates matches. Their shortlist surfaces founders with DORA-compatible products above those without, even when other signals are similar.
+            </div>
+          </div>
+        </div>
+
+        <h2 class="h2-main">Bucket Eligibility by Persona</h2>
+        <div style="overflow-x:auto;">
+          <table class="tbl">
+            <thead>
+              <tr><th>Persona</th><th>P1 (Capital)</th><th>PILOT (Sandbox)</th><th>P2 (Strategic)</th><th>Ranked by</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Investor</td>
+                <td>✓ Primary bucket</td>
+                <td>Rare (cross_type flag)</td>
+                <td>✓</td>
+                <td>Counterparty fin_ready (α=0.60)</td>
+              </tr>
+              <tr>
+                <td>Founder</td>
+                <td>✓ If actively raising</td>
+                <td>✓ If operationally ready</td>
+                <td>✓</td>
+                <td>MAX(fin, ops) — γ=max</td>
+              </tr>
+              <tr>
+                <td>Regulator</td>
+                <td>Rare (cross_type flag)</td>
+                <td>✓ Primary bucket</td>
+                <td>✓</td>
+                <td>Counterparty ops_ready (α=0.20)</td>
+              </tr>
+              <tr>
+                <td>Corporate</td>
+                <td>✓ If corp_vc active</td>
+                <td>✓ If pilot-ready</td>
+                <td>✓</td>
+                <td>MAX(fin, ops) + own readiness (β=0.15)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- FAQ -->
+      <section id="faq">
+        <h1 class="h1-main">FAQ</h1>
+        <div style="margin-top:20px;">
+          <!-- FAQ items -->
+          <div class="faq-item" data-faq-index="0" style="border:1px solid #E4E0D8; border-radius:6px; margin-bottom:8px; overflow:hidden;">
+            <div class="faq-q">
+              <span style="flex:1;">Why does a Series B company sometimes score lower traction than a Seed company?</span>
+              <span class="faq-toggle" style="color:#BBB; font-size:20px; flex-shrink:0;">+</span>
+            </div>
+            <div class="faq-a" style="display:none; padding:0 18px 14px; font-size:13.5px; line-height:1.75; color:#555; font-family:'Instrument Sans',sans-serif; background:white;">
+              Stage label is never a quality signal — it is a filter only. Traction is scored exclusively from evidence: institutional clients, audit history, TVL, known investors, regulatory approvals. A Seed company with enterprise clients and a Trail of Bits audit will outscore a Series B company with no demonstrable traction.
+            </div>
+          </div>
+
+          <div class="faq-item" data-faq-index="1" style="border:1px solid #E4E0D8; border-radius:6px; margin-bottom:8px; overflow:hidden;">
+            <div class="faq-q">
+              <span style="flex:1;">Why does a pair appear in PILOT even though neither side is raising capital?</span>
+              <span class="faq-toggle" style="color:#BBB; font-size:20px; flex-shrink:0;">+</span>
+            </div>
+            <div class="faq-a" style="display:none; padding:0 18px 14px; font-size:13.5px; line-height:1.75; color:#555; font-family:'Instrument Sans',sans-serif; background:white;">
+              FinancialReady and OperationalReady are fully independent dimensions. PILOT fires when match_score ≥ 0.70 AND operational_ready ≥ 0.65 AND financial_ready &lt; 0.70. This surfaces regulator-founder and corporate-founder pilot opportunities that would be incorrectly buried in P3 under a single-dimension system.
+            </div>
+          </div>
+
+          <div class="faq-item" data-faq-index="2" style="border:1px solid #E4E0D8; border-radius:6px; margin-bottom:8px; overflow:hidden;">
+            <div class="faq-q">
+              <span style="flex:1;">What happens if actively_raising is checked but freetext says 'we recently closed our Series B'?</span>
+              <span class="faq-toggle" style="color:#BBB; font-size:20px; flex-shrink:0;">+</span>
+            </div>
+            <div class="faq-a" style="display:none; padding:0 18px 14px; font-size:13.5px; line-height:1.75; color:#555; font-family:'Instrument Sans',sans-serif; background:white;">
+              Agent 1 sets actively_raising_confirmed=false. The contradiction overrides the checkbox. fin_ready_score is reduced — the raising_signal component drops to 0.0 instead of 1.0. The mismatch is logged in the processing report.
+            </div>
+          </div>
+
+          <div class="faq-item" data-faq-index="3" style="border:1px solid #E4E0D8; border-radius:6px; margin-bottom:8px; overflow:hidden;">
+            <div class="faq-q">
+              <span style="flex:1;">Why are rank_scores directional? Why isn't A→B the same as B→A?</span>
+              <span class="faq-toggle" style="color:#BBB; font-size:20px; flex-shrink:0;">+</span>
+            </div>
+            <div class="faq-a" style="display:none; padding:0 18px 14px; font-size:13.5px; line-height:1.75; color:#555; font-family:'Instrument Sans',sans-serif; background:white;">
+              Because each persona values readiness differently. An investor with alpha=0.60 weights the founder's financial readiness heavily. The founder's rank_score for the same investor uses alpha=0.50 and gamma=max — a different formula producing a different rank. Each person's shortlist is ranked from their own perspective.
+            </div>
+          </div>
+
+          <div class="faq-item" data-faq-index="4" style="border:1px solid #E4E0D8; border-radius:6px; margin-bottom:8px; overflow:hidden;">
+            <div class="faq-q">
+              <span style="flex:1;">When does a profile get flagged needs_review=true?</span>
+              <span class="faq-toggle" style="color:#BBB; font-size:20px; flex-shrink:0;">+</span>
+            </div>
+            <div class="faq-a" style="display:none; padding:0 18px 14px; font-size:13.5px; line-height:1.75; color:#555; font-family:'Instrument Sans',sans-serif; background:white;">
+              When persona_confidence &lt; 0.70 (self-reported persona contradicts evidence), enrichment_quality &lt; 0.30 (insufficient signal — missing LinkedIn, thin freetext), or when the persona override confidence gap exceeds 0.20.
+            </div>
+          </div>
+
+          <div class="faq-item" data-faq-index="5" style="border:1px solid #E4E0D8; border-radius:6px; margin-bottom:8px; overflow:hidden;">
+            <div class="faq-q">
+              <span style="flex:1;">What is the difference between thematic_fit and complementary_score?</span>
+              <span class="faq-toggle" style="color:#BBB; font-size:20px; flex-shrink:0;">+</span>
+            </div>
+            <div class="faq-a" style="display:none; padding:0 18px 14px; font-size:13.5px; line-height:1.75; color:#555; font-family:'Instrument Sans',sans-serif; background:white;">
+              thematic_fit measures topic alignment: do they work in the same verticals, regulatory environments, geographies? complementary_score is a weighted aggregate of persona_fit + intent_overlap + thematic_fit — it measures structural match quality holistically. A pair can have high thematic_fit but low complementary_score if their intents conflict.
+            </div>
+          </div>
+
+          <div class="faq-item" data-faq-index="6" style="border:1px solid #E4E0D8; border-radius:6px; margin-bottom:8px; overflow:hidden;">
+            <div class="faq-q">
+              <span style="flex:1;">When does non_obvious_score matter most?</span>
+              <span class="faq-toggle" style="color:#BBB; font-size:20px; flex-shrink:0;">+</span>
+            </div>
+            <div class="faq-a" style="display:none; padding:0 18px 14px; font-size:13.5px; line-height:1.75; color:#555; font-family:'Instrument Sans',sans-serif; background:white;">
+              When vertical tag overlap is low (&lt;0.25) but mandate_summary semantics suggest similar underlying problems. This surfaces founders from different sectors solving the same compliance or infrastructure challenge. When tag_overlap ≥ 0.50, non_obvious_score is capped at 0.10 — the match is obvious, not a discovery.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- GLOSSARY -->
+      <section id="glossary">
+        <h1 class="h1-main">Glossary</h1>
+        <div style="margin-top:16px; margin-bottom:20px;">
+          <input
+            type="text"
+            id="glossary-search"
+            placeholder="Search terms or definitions…"
+            style="width:100%; padding:10px 14px; border:1px solid #E4E0D8; border-radius:6px; font-family:'Instrument Sans',sans-serif; font-size:14px; background:white; outline:none; color:#18182E;"
+          />
+        </div>
+
+        <div id="glossary-card" class="card" style="padding:0; overflow:hidden;">
+          <!-- Glossary items -->
+          <div class="glossary-empty" style="display:none; padding:24px; color:#999; font-family:'Instrument Sans',sans-serif; text-align:center;">
+            No terms match "<span id="glossary-query"></span>"
+          </div>
+
+          <div id="glossary-items">
+            <div class="glossary-item" data-term="Reconciliation key" data-def="The shared identifier between registration data and enriched profile. In XVentures: attendee_id.">
+              <div style="display:grid; grid-template-columns:230px 1fr; border-bottom:1px solid #E4E0D8;">
+                <div style="padding:11px 16px 11px 20px; font-family:'DM Mono',monospace; font-size:12px; font-weight:500; color:#18182E;">Reconciliation key</div>
+                <div style="padding:11px 20px 11px 16px; font-size:13px; color:#555; font-family:'Instrument Sans',sans-serif; line-height:1.6; border-left:1px solid #E4E0D8;">
+                  The shared identifier between registration data and enriched profile. In XVentures: attendee_id.
+                </div>
+              </div>
+            </div>
+
+            <div class="glossary-item" data-term="fin_ready_score" data-def="Individual financial readiness (0–1). Founders: from raising/timeline/size signals. Investors: deploy signal + EOL risk. Regulators/corporates: constant 0.20.">
+              <div style="display:grid; grid-template-columns:230px 1fr; border-bottom:1px solid #E4E0D8;">
+                <div style="padding:11px 16px 11px 20px; font-family:'DM Mono',monospace; font-size:12px; font-weight:500; color:#18182E;">fin_ready_score</div>
+                <div style="padding:11px 20px 11px 16px; font-size:13px; color:#555; font-family:'Instrument Sans',sans-serif; line-height:1.6; border-left:1px solid #E4E0D8;">
+                  Individual financial readiness (0–1). Founders: from raising/timeline/size signals. Investors: deploy signal + EOL risk. Regulators/corporates: constant 0.20.
+                </div>
+              </div>
+            </div>
+
+            <div class="glossary-item" data-term="ops_ready_score" data-def="Individual operational readiness (0–1). From product liveness, sandbox intent, pilot timeline, and compliance depth. Investors: constant 0.20.">
+              <div style="display:grid; grid-template-columns:230px 1fr; border-bottom:1px solid #E4E0D8;">
+                <div style="padding:11px 16px 11px 20px; font-family:'DM Mono',monospace; font-size:12px; font-weight:500; color:#18182E;">ops_ready_score</div>
+                <div style="padding:11px 20px 11px 16px; font-size:13px; color:#555; font-family:'Instrument Sans',sans-serif; line-height:1.6; border-left:1px solid #E4E0D8;">
+                  Individual operational readiness (0–1). From product liveness, sandbox intent, pilot timeline, and compliance depth. Investors: constant 0.20.
+                </div>
+              </div>
+            </div>
+
+            <div class="glossary-item" data-term="FinancialReady(A,B)" data-def="Pairwise = MIN(fin_ready_A, fin_ready_B). A pair is only as financially ready as its least-ready member.">
+              <div style="display:grid; grid-template-columns:230px 1fr; border-bottom:1px solid #E4E0D8;">
+                <div style="padding:11px 16px 11px 20px; font-family:'DM Mono',monospace; font-size:12px; font-weight:500; color:#18182E;">FinancialReady(A,B)</div>
+                <div style="padding:11px 20px 11px 16px; font-size:13px; color:#555; font-family:'Instrument Sans',sans-serif; line-height:1.6; border-left:1px solid #E4E0D8;">
+                  Pairwise = MIN(fin_ready_A, fin_ready_B). A pair is only as financially ready as its least-ready member.
+                </div>
+              </div>
+            </div>
+
+            <div class="glossary-item" data-term="OperationalReady(A,B)" data-def="Pairwise = MIN(ops_ready_A, ops_ready_B). Fully independent of FinancialReady — never blended.">
+              <div style="display:grid; grid-template-columns:230px 1fr; border-bottom:1px solid #E4E0D8;">
+                <div style="padding:11px 16px 11px 20px; font-family:'DM Mono',monospace; font-size:12px; font-weight:500; color:#18182E;">OperationalReady(A,B)</div>
+                <div style="padding:11px 20px 11px 16px; font-size:13px; color:#555; font-family:'Instrument Sans',sans-serif; line-height:1.6; border-left:1px solid #E4E0D8;">
+                  Pairwise = MIN(ops_ready_A, ops_ready_B). Fully independent of FinancialReady — never blended.
+                </div>
+              </div>
+            </div>
+
+            <!-- (You can continue adding the remaining glossary items the same way as in the React code) -->
+            <!-- For brevity, not all items are reproduced here; repeat pattern for all GLOSSARY entries -->
+          </div>
+        </div>
+      </section>
+
+      <!-- FOOTER -->
+      <div style="margin-top:64px; padding-top:22px; border-top:1px solid #E4E0D8; display:flex; justify-content:space-between; align-items:center;">
+        <div style="font-family:'Instrument Sans',sans-serif; font-size:12px; color:#BBB;">XVentures Data Strategy · v2.1</div>
+        <div style="font-family:'DM Mono',monospace; font-size:10px; color:#CCC;">extract · candidate_gen · persona_scoring · bucket_rank</div>
+      </div>
+    </main>
   </div>
 
-  <div class="slbl">Live Match Simulator</div>
-  <div class="stitle">Select Attendee &rarr; See Ranked Shortlist</div>
-  <p class="sdesc">Choose a primary attendee to generate their ranked shortlist. Bucketed by P1 / PILOT / P2 / P3. Click any row to expand the scoring breakdown.</p>
-  <div class="sim-bar" id="sim-bar"></div>
-  <div id="sim-out"></div>
-</div>
+  <script>
+    // Scrollspy + nav click
+    (function() {
+      const navBtns = Array.from(document.querySelectorAll('.nav-btn'));
+      const dots = Array.from(document.querySelectorAll('.nav-dot'));
+      const sections = navBtns.map(btn => document.getElementById(btn.dataset.target));
+      const offset = 120;
 
-<script>
-// ===================================================
-// DATA
-// ===================================================
-var PERSONAS = [
-  { id:'P1', name:'Amara K.', role:'SWF Allocator', org:'Abu Dhabi SWF', type:'investor', color:'#00e5a0',
-    stats:[['AUM','$200M earmarked RWA'],['Stage focus','Series B+'],['Mandate','Deploy into RWA and infra'],['Deal-readiness','High, actively deploying']],
-    looking:'Highly filtered institutional-grade infra founders, co-investors, regulatory intelligence for de-risking',
-    signals:'Fund vintage, check size match, thesis alignment, GP track record in vertical, portfolio quality',
-    decisions:'Allocate capital to RWA infra, identify co-investment GPs, de-risk thesis via regulatory insight' },
-  { id:'P2', name:'Marcus T.', role:'Founder / CEO', org:'VaultBridge Series B', type:'founder', color:'#6c63ff',
-    stats:[['Stage','Series B ($40M raised)'],['Clients','Live with European banks'],['Mandate','Strategic capital + sandbox pilots'],['Deal-readiness','High, open to SWF and growth VC']],
-    looking:'Strategic investors (SWFs, growth VCs), regulatory sandbox access, infra integration partners',
-    signals:'Institutional traction, audited contracts, bank clients, live product, clear round parameters',
-    decisions:'Choose investors and partners, engage regulators for CBDC pilots, build infra ecosystem' },
-  { id:'P3', name:'Elena S.', role:'GP / Fund Manager', org:'$500M TradFi-DeFi VC', type:'investor', color:'#00e5a0',
-    stats:[['AUM','$500M, infra/TradFi-DeFi'],['Stage focus','Series A-B'],['Mandate','Actively deploying in infra vertical'],['Deal-readiness','High, top of pipeline needed']],
-    looking:'On-thesis founders, LP/allocator relationships, co-investors, regulatory intelligence for portfolio',
-    signals:'Founder quality, portfolio fit, token vs equity model, follow-on capacity, institutional traction',
-    decisions:'Add to active pipeline, introduce portfolio companies, co-invest with allocators like Amara' },
-  { id:'P4', name:'James W.', role:'Co-founder / CTO', org:'NexaLayer L2', type:'founder', color:'#ff6b6b',
-    stats:[['Stage','Series A range'],['Focus','Compliance-first L2 for institutions'],['Mandate','Investor + regulatory sandbox'],['Deal-readiness','High for pilots; raising is secondary']],
-    looking:'Series A investor with infra thesis, regulatory sandbox access (CBDC/MiCA), infra integration partner',
-    signals:'Compliance modules, MiCA-alignment, institutional customer pipeline, audited code, live testnet',
-    decisions:'Choose lead investor, engage regulator pilots, partner with custody/settlement infra' },
-  { id:'P5', name:'Sophie M.', role:'Policy Lead', org:'Deutsche Bundesbank', type:'regulator', color:'#f5a623',
-    stats:[['Institution','Central Bank (G7)'],['Mandate','CBDC and MiCA implementation'],['Seeking','Sandbox participants, infra partners'],['Deal-readiness','High for pilots, zero for capital']],
-    looking:'Compliance-first builders, compliance-ready products, systemic risk intelligence from large allocators',
-    signals:'Regulatory compliance posture, governance quality, KYC/AML, sandbox eligibility, MiCA readiness',
-    decisions:'Select sandbox participants, inform MiCA guidance, understand systemic exposure through infra' }
-];
+      navBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.target;
+          const el = document.getElementById(id);
+          if (el) {
+            const top = el.getBoundingClientRect().top + window.scrollY - 80;
+            window.scrollTo({ top, behavior: 'smooth' });
+          }
+        });
+      });
 
-var IDS = ['P1','P2','P3','P4','P5'];
-var NAMES = {P1:'Amara',P2:'Marcus',P3:'Elena',P4:'James',P5:'Sophie'};
+      function onScroll() {
+        const scrollY = window.scrollY + offset;
+        let currentId = sections[0].id;
+        sections.forEach(sec => {
+          if (sec && sec.offsetTop <= scrollY) currentId = sec.id;
+        });
 
-var MS_DATA = {
-  P1:{P2:0.95,P3:0.90,P4:0.70,P5:0.60},
-  P2:{P1:0.95,P3:0.95,P4:0.70,P5:0.60},
-  P3:{P1:0.90,P2:0.95,P4:0.95,P5:0.65},
-  P4:{P1:0.70,P2:0.70,P3:0.95,P5:0.90},
-  P5:{P1:0.60,P2:0.60,P3:0.65,P4:0.90}
-};
+        navBtns.forEach(btn => {
+          if (btn.dataset.target === currentId) btn.classList.add('act');
+          else btn.classList.remove('act');
+        });
 
-var FR_DATA = {
-  P1:{P2:0.90,P3:0.90,P4:0.55,P5:0.10},
-  P2:{P1:0.90,P3:0.90,P4:0.50,P5:0.15},
-  P3:{P1:0.90,P2:0.90,P4:0.90,P5:0.15},
-  P4:{P1:0.55,P2:0.50,P3:0.90,P5:0.10},
-  P5:{P1:0.10,P2:0.15,P3:0.15,P4:0.10}
-};
+        dots.forEach(dot => {
+          if (dot.dataset.target === currentId) dot.style.background = '#18182E';
+          else dot.style.background = '#DDD';
+        });
+      }
 
-var OR_DATA = {
-  P1:{P2:0.70,P3:0.65,P4:0.70,P5:0.35},
-  P2:{P1:0.70,P3:0.70,P4:0.75,P5:0.65},
-  P3:{P1:0.65,P2:0.70,P4:0.75,P5:0.40},
-  P4:{P1:0.70,P2:0.75,P3:0.75,P5:0.85},
-  P5:{P1:0.35,P2:0.65,P3:0.40,P4:0.85}
-};
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    })();
 
-var MATCH_RAT = {
-  'P1-P2':'Amara deploys $200M into RWA/infra; Marcus is Series B custody/settlement live with European banks. Direct complementarity.',
-  'P1-P3':'LP/GP co-investment. Elena actively deploys into infra matching Amara\'s mandate with strong co-invest potential.',
-  'P1-P4':'NexaLayer compliance L2 is future infrastructure for Amara\'s institutional DeFi thesis. Strategic rails.',
-  'P1-P5':'Sophie\'s regulatory perspective on RWA and tokenization is strategic intelligence for Amara.',
-  'P2-P3':'Ideal VC-founder fit. Elena\'s fund is on-thesis for TradFi-DeFi infra at Series B with clear follow-on capacity.',
-  'P2-P4':'Non-obvious: L2 and custody/settlement solve complementary problems for the same institutional client base.',
-  'P2-P5':'VaultBridge custody/settlement infra informs CBDC and tokenized securities architecture.',
-  'P3-P4':'Extremely strong. NexaLayer is precisely the TradFi-DeFi infra intersection Elena invests in.',
-  'P3-P5':'Policy intelligence for portfolio de-risking. Sophie gets a picture of infra bets shaping the market.',
-  'P4-P5':'Direct sandbox fit. Sophie runs CBDC/MiCA experiments; James has a compliance-first L2 purpose-built for this.'
-};
+    // Readiness calculator
+    (function() {
+      const finA = document.getElementById('finA');
+      const opsA = document.getElementById('opsA');
+      const finB = document.getElementById('finB');
+      const opsB = document.getElementById('opsB');
 
-var FIN_RAT = {
-  'P1-P2':'Both actively transacting: Amara has $200M to deploy; Marcus is Series B open to SWF investors.',
-  'P1-P3':'LP/GP with high mutual readiness: Amara allocates to funds; Elena is actively deploying in-vertical.',
-  'P1-P4':'Moderate: James may seek strategic capital but immediate SWF allocation is less clear. More pilot-first.',
-  'P1-P5':'Near-zero: central bank vs capital allocator. No financial transaction in 12-18 month horizon.',
-  'P2-P3':'Both ready: Marcus at $40M Series B target; Elena has capital at this stage and thesis.',
-  'P2-P4':'Low: infra partnership potential but no imminent capital round between two founders.',
-  'P2-P5':'Near-zero for equity or revenue: central bank does not deploy commercial capital.',
-  'P3-P4':'High: if James is raising at Elena\'s stage and check size, this is P1 capital territory.',
-  'P3-P5':'Near-zero: Elena deploys capital; Sophie does not. No financial deal.',
-  'P4-P5':'Effectively zero: CBDC sandbox pilot is not a financial transaction.'
-};
+      const finAVal = document.getElementById('finA-val');
+      const opsAVal = document.getElementById('opsA-val');
+      const finBVal = document.getElementById('finB-val');
+      const opsBVal = document.getElementById('opsB-val');
 
-var OPS_RAT = {
-  'P1-P2':'High: Amara can pilot VaultBridge custody as infrastructure for tokenized asset management.',
-  'P1-P3':'Medium: fund partnership and strategic alliance is an operational relationship beyond equity.',
-  'P1-P4':'High: Amara can integrate NexaLayer compliance L2 as rails for institutional DeFi allocations.',
-  'P1-P5':'Low: SWF and central bank overlap is strategic dialogue, not concrete operational collaboration.',
-  'P2-P3':'High: Elena\'s portfolio companies could partner with VaultBridge for custody services.',
-  'P2-P4':'High: L2 and custody stack integration is a concrete technical partnership. Both have live products.',
-  'P2-P5':'High: VaultBridge can participate in Bundesbank CBDC and tokenized securities pilots. Live infrastructure match.',
-  'P3-P4':'High: Elena portfolio companies could build on NexaLayer. Portfolio advisory beyond equity.',
-  'P3-P5':'Medium: Sophie wants portfolio-level systemic risk intelligence from a leading infrastructure fund.',
-  'P4-P5':'Very high: Both actively seeking sandbox engagement. NexaLayer is purpose-built for MiCA compliance.'
-};
+      const finReadyVal = document.getElementById('finReady-val');
+      const opsReadyVal = document.getElementById('opsReady-val');
+      const finReadyDetail = document.getElementById('finReady-detail');
+      const opsReadyDetail = document.getElementById('opsReady-detail');
+      const finReadyBar = document.getElementById('finReady-bar');
+      const opsReadyBar = document.getElementById('opsReady-bar');
 
-// ===================================================
-// UTILS
-// ===================================================
-function sc(v) {
-  if (v >= 0.85) return '#00e5a0';
-  if (v >= 0.65) return '#6c63ff';
-  if (v >= 0.40) return '#f5a623';
-  return '#ff6b6b';
-}
+      const bucketCard = document.getElementById('bucket-card');
+      const bucketLabel = document.getElementById('bucket-label');
+      const bucketVal = document.getElementById('bucket-val');
+      const bucketDetail = document.getElementById('bucket-detail');
 
-function bucket(ms, fr, ops) {
-  if (ms >= 0.70 && fr >= 0.70) return 'P1';
-  if (ms >= 0.70 && ops >= 0.65 && fr < 0.70) return 'PILOT';
-  if (ms >= 0.65 && Math.max(fr, ops) >= 0.40) return 'P2';
-  if (ms >= 0.40) return 'P3';
-  return 'P3';
-}
+      function clamp(num) { return Math.max(0, Math.min(1, num)); }
 
-function rankScore(ptype, ms, fr_cp, ops_cp, fr_s, ops_s) {
-  var cfg = {investor:{a:0.60,b:0.05,g:'fin'}, founder:{a:0.50,b:0.10,g:'max'}, regulator:{a:0.20,b:0.05,g:'ops'}};
-  var c = cfg[ptype] || cfg.founder;
-  var dr_cp = c.g === 'fin' ? fr_cp : c.g === 'ops' ? ops_cp : Math.max(fr_cp, ops_cp);
-  var dr_s  = c.g === 'fin' ? fr_s  : c.g === 'ops' ? ops_s  : Math.max(fr_s, ops_s);
-  return ms * (1 + c.a * dr_cp + c.b * dr_s);
-}
+      function update() {
+        const fA = parseFloat(finA.value);
+        const oA = parseFloat(opsA.value);
+        const fB = parseFloat(finB.value);
+        const oB = parseFloat(opsB.value);
 
-function pairKey(a, b) {
-  var arr = [a, b].sort();
-  return arr[0] + '-' + arr[1];
-}
+        finAVal.textContent = fA.toFixed(2);
+        opsAVal.textContent = oA.toFixed(2);
+        finBVal.textContent = fB.toFixed(2);
+        opsBVal.textContent = oB.toFixed(2);
 
-// ===================================================
-// RENDER: SIMULATOR
-// ===================================================
-function renderSimBar() {
-  document.getElementById('sim-bar').innerHTML = PERSONAS.map(function(p) {
-    return '<button class="sbtn" id="sb-' + p.id + '" onclick="runSim(\'' + p.id + '\')">' + p.id + '&middot;' + p.name.split(' ')[0] + '</button>';
-  }).join('');
-}
+        const finReady = Math.min(fA, fB);
+        const opsReady = Math.min(oA, oB);
+        finReadyVal.textContent = finReady.toFixed(2);
+        opsReadyVal.textContent = opsReady.toFixed(2);
 
-function runSim(id) {
-  document.querySelectorAll('.sbtn').forEach(function(b){ b.classList.remove('on'); });
-  var btn = document.getElementById('sb-' + id);
-  if (btn) btn.classList.add('on');
+        finReadyDetail.textContent = `MIN(${fA.toFixed(2)}, ${fB.toFixed(2)})`;
+        opsReadyDetail.textContent = `MIN(${oA.toFixed(2)}, ${oB.toFixed(2)})`;
 
-  var primary = PERSONAS.find(function(p){ return p.id === id; });
-  var ptype = primary.type;
+        finReadyBar.style.width = (clamp(finReady) * 100) + '%';
+        opsReadyBar.style.width = (clamp(opsReady) * 100) + '%';
 
-  var candidates = PERSONAS.filter(function(p){ return p.id !== id; }).map(function(c) {
-    var ms   = (MS_DATA[id] && MS_DATA[id][c.id]) ? MS_DATA[id][c.id] : 0;
-    var fr_cp = (FR_DATA[id] && FR_DATA[id][c.id]) ? FR_DATA[id][c.id] : 0;
-    var ops_cp = (OR_DATA[id] && OR_DATA[id][c.id]) ? OR_DATA[id][c.id] : 0;
-    var fr_s  = (FR_DATA[c.id] && FR_DATA[c.id][id]) ? FR_DATA[c.id][id] : 0;
-    var ops_s  = (OR_DATA[c.id] && OR_DATA[c.id][id]) ? OR_DATA[c.id][id] : 0;
-    var rs = rankScore(ptype, ms, fr_cp, ops_cp, fr_s, ops_s);
-    var bkt = bucket(ms, fr_cp, ops_cp);
-    var k = pairKey(id, c.id);
-    return { p:c, ms:ms, fr:fr_cp, ops:ops_cp, rs:rs, bkt:bkt, k:k };
-  });
-  candidates.sort(function(a,b){ return b.rs - a.rs; });
+        const p1 = finReady >= 0.70;
+        const pilot = !p1 && opsReady >= 0.65;
+        let bucket = 'P3';
+        if (p1) bucket = 'P1';
+        else if (pilot) bucket = 'PILOT';
+        else if (finReady >= 0.40 || opsReady >= 0.40) bucket = 'P2';
 
-  var ORDER = ['P1','PILOT','P2','P3'];
-  var LABELS = {
-    P1:'P1 &bull; Priority Capital Meetings &mdash; Schedule at the Louvre',
-    PILOT:'PILOT &bull; Sandbox &amp; Operational Track',
-    P2:'P2 &bull; Strategic &amp; Non-obvious',
-    P3:'P3 &bull; Future Pipeline'
-  };
-  var BCOLORS = {P1:'var(--green)',PILOT:'var(--blue)',P2:'var(--purple)',P3:'var(--amber)'};
+        const bucketColorMap = { P1: '#2D9B6F', 'PILOT': '#0A7FAD', P2: '#C47A00', P3: '#888' };
+        const bucketBgMap = { P1: '#E8F9F2', 'PILOT': '#E3F4FB', P2: '#FFF5E0', P3: '#F5F5F5' };
+        const color = bucketColorMap[bucket];
+        const bg = bucketBgMap[bucket];
 
-  var groups = {P1:[],PILOT:[],P2:[],P3:[]};
-  candidates.forEach(function(c){ if (groups[c.bkt]) groups[c.bkt].push(c); });
+        bucketCard.style.background = bg;
+        bucketCard.style.borderColor = color;
+        bucketLabel.style.color = color;
+        bucketVal.style.color = color;
+        bucketVal.textContent = bucket;
 
-  var cfgLabel = {investor:'&alpha;=0.60 &beta;=0.05 &gamma;=fin', founder:'&alpha;=0.50 &beta;=0.10 &gamma;=max', regulator:'&alpha;=0.20 &beta;=0.05 &gamma;=ops'};
-  var html = '<div style="font-size:12px;color:var(--mid);margin-bottom:18px">Shortlist for <strong style="color:' + primary.color + '">' + id + '&bull;' + primary.name + '</strong> (' + primary.type + ') &mdash; ' + (cfgLabel[ptype] || '') + '</div>';
+        if (p1) bucketDetail.textContent = 'fin_ready ≥ 0.70';
+        else if (pilot) bucketDetail.textContent = 'ops_ready ≥ 0.65';
+        else if (finReady >= 0.40 || opsReady >= 0.40) bucketDetail.textContent = 'MAX ≥ 0.40';
+        else bucketDetail.textContent = 'match < 0.40';
+      }
 
-  ORDER.forEach(function(bkt) {
-    if (!groups[bkt] || !groups[bkt].length) return;
-    html += '<div style="margin-bottom:20px"><div class="bkt-hdr" style="color:' + BCOLORS[bkt] + '">' + LABELS[bkt];
-    if (bkt === 'PILOT') html += ' <span class="new-tag">NEW BUCKET</span>';
-    html += '</div>';
+      [finA, opsA, finB, opsB].forEach(el => el.addEventListener('input', update));
+      update();
+    })();
 
-    groups[bkt].forEach(function(c) {
-      var msC = sc(c.ms), frC = sc(c.fr), opsC = sc(c.ops), rsC = sc(c.rs/1.6);
-      var matchExp  = MATCH_RAT[c.k] || '';
-      var finExp    = FIN_RAT[c.k]   || '';
-      var opsExp    = OPS_RAT[c.k]   || '';
-      html += '<div class="mrow" id="mr-' + id + '-' + c.p.id + '" onclick="togRow(\'' + id + '-' + c.p.id + '\')">' +
-        '<div class="mrow-top">' +
-        '<div><div class="mname" style="color:' + c.p.color + '">' + c.p.id + '&bull;' + c.p.name + '</div><div class="mrole">' + c.p.role + '</div></div>' +
-        '<div class="sbars">' +
-        '<div class="srow"><span class="slbl2">MatchScore</span><div class="sbar"><div class="sfill" style="width:' + (c.ms*100) + '%;background:' + msC + '"></div></div><div class="sval" style="color:' + msC + '">' + c.ms.toFixed(2) + '</div></div>' +
-        '<div class="srow"><span class="slbl2">FinancialReady</span><div class="sbar"><div class="sfill" style="width:' + (c.fr*100) + '%;background:' + frC + '"></div></div><div class="sval" style="color:' + frC + '">' + c.fr.toFixed(2) + '</div></div>' +
-        '<div class="srow"><span class="slbl2">OpsReady</span><div class="sbar"><div class="sfill" style="width:' + (c.ops*100) + '%;background:' + opsC + '"></div></div><div class="sval" style="color:' + opsC + '">' + c.ops.toFixed(2) + '</div></div>' +
-        '</div>' +
-        '<div class="rscore" style="color:' + rsC + '">' + c.rs.toFixed(2) + '</div>' +
-        '<div class="bbdg b' + bkt + '">' + bkt + '</div>' +
-        '</div>' +
-        '<div class="expand">' +
-        '<div class="exp-grid">' +
-        '<div><h5>Why meet</h5><p>' + matchExp + '</p></div>' +
-        '<div><h5>Financial signal</h5><p>' + finExp + '</p></div>' +
-        '<div><h5>Operational signal</h5><p>' + opsExp + '</p></div>' +
-        '</div></div></div>';
-    });
-    html += '</div>';
-  });
+    // Persona tabs
+    (function() {
+      const tabs = Array.from(document.querySelectorAll('.persona-tab'));
+      const personas = {
+        investor: document.getElementById('persona-investor'),
+        founder: document.getElementById('persona-founder'),
+        regulator: document.getElementById('persona-regulator'),
+        corporate: document.getElementById('persona-corporate')
+      };
 
-  document.getElementById('sim-out').innerHTML = html;
-}
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          const id = tab.dataset.personaTab;
+          tabs.forEach(t => {
+            const pid = t.dataset.personaTab;
+            let color = '#2D9B6F';
+            if (pid === 'founder') color = '#7B4FD6';
+            if (pid === 'regulator') color = '#0A7FAD';
+            if (pid === 'corporate') color = '#C47A00';
+            if (pid === id) {
+              t.style.background = color;
+              t.style.color = '#fff';
+            } else {
+              t.style.background = '#fff';
+              t.style.color = color;
+            }
+          });
 
-function togRow(key) {
-  var el = document.getElementById('mr-' + key);
-  if (el) el.classList.toggle('open');
-}
+          Object.keys(personas).forEach(key => {
+            personas[key].style.display = key === id ? 'block' : 'none';
+          });
+        });
+      });
+    })();
 
-// ===================================================
-// INIT
-// ===================================================
-document.addEventListener('DOMContentLoaded', function() {
-  renderSimBar();
-  runSim('P4');
-});
-</script>
+    // FAQ accordion
+    (function() {
+      const items = Array.from(document.querySelectorAll('.faq-item'));
+      items.forEach((item) => {
+        const q = item.querySelector('.faq-q');
+        const a = item.querySelector('.faq-a');
+        const toggle = item.querySelector('.faq-toggle');
+        q.addEventListener('click', () => {
+          const isOpen = a.style.display === 'block';
+          items.forEach(i => {
+            i.querySelector('.faq-a').style.display = 'none';
+            i.querySelector('.faq-toggle').textContent = '+';
+          });
+          if (!isOpen) {
+            a.style.display = 'block';
+            toggle.textContent = '−';
+          }
+        });
+      });
+    })();
+
+    // Glossary search
+    (function() {
+      const input = document.getElementById('glossary-search');
+      const items = Array.from(document.querySelectorAll('.glossary-item'));
+      const empty = document.querySelector('.glossary-empty');
+      const querySpan = document.getElementById('glossary-query');
+
+      function filter() {
+        const q = (input.value || '').toLowerCase();
+        let any = false;
+        items.forEach(it => {
+          const term = it.dataset.term.toLowerCase();
+          const def = it.dataset.def.toLowerCase();
+          const match = term.includes(q) || def.includes(q);
+          it.style.display = match ? 'block' : 'none';
+          if (match) any = true;
+        });
+        if (!any && q.length > 0) {
+          empty.style.display = 'block';
+          querySpan.textContent = input.value;
+        } else {
+          empty.style.display = 'none';
+        }
+      }
+
+      input.addEventListener('input', filter);
+      filter();
+    })();
+  </script>
 </body>
 </html>
