@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proof of macth Matching System</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#08080e;--s1:#0f0f1a;--s2:#16162a;--bd:#1e1e38;
+  --green:#00e5a0;--purple:#6c63ff;--red:#ff6b6b;--amber:#f5a623;--blue:#38bdf8;
+  --text:#e2e2f0;--mid:#8888aa;--dim:#4a4a6a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Mono',monospace;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,229,160,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,160,.02) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0}
+.w{position:relative;z-index:1;max-width:1260px;margin:0 auto;padding:0 24px}
+
+/* HEADER */
+header{padding:28px 0;border-bottom:1px solid var(--bd);margin-bottom:36px}
+.hdr{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px}
+.hdr-left .eye{font-size:10px;letter-spacing:.2em;color:var(--green);text-transform:uppercase;margin-bottom:8px}
+.hdr-left h1{font-family:'Syne',sans-serif;font-size:clamp(20px,2.8vw,32px);font-weight:800;line-height:1.1}
+.hdr-left h1 em{color:var(--green);font-style:normal}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.pill{font-size:10px;letter-spacing:.08em;padding:4px 10px;border-radius:20px;border:1px solid;text-transform:uppercase;white-space:nowrap}
+.pg{border-color:var(--green);color:var(--green)}
+.pp{border-color:var(--purple);color:var(--purple)}
+.pb{border-color:var(--blue);color:var(--blue)}
+.pa{border-color:var(--amber);color:var(--amber)}
+
+/* TABS */
+.tabs{display:flex;gap:2px;margin-bottom:32px;border-bottom:1px solid var(--bd);overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tb{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;padding:10px 18px;border:none;background:transparent;color:var(--dim);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all .2s;text-transform:uppercase}
+.tb:hover{color:var(--mid)}
+.tb.on{color:var(--green);border-bottom-color:var(--green)}
+
+/* PANELS */
+.pn{display:none}
+.pn.on{display:block;animation:fu .25s ease}
+@keyframes fu{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+/* SECTION */
+.slbl{font-size:10px;letter-spacing:.2em;color:var(--green);text-transform:uppercase;margin-bottom:6px}
+.stitle{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;margin-bottom:8px}
+.sdesc{font-size:12px;color:var(--mid);line-height:1.75;max-width:740px;margin-bottom:28px}
+
+/* FORMULA BLOCK */
+.formula{background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:16px 20px;margin:14px 0;font-size:13px;color:var(--green);letter-spacing:.02em;line-height:1.9}
+.fg{color:var(--green)}.fp{color:var(--purple)}.fb{color:var(--blue)}.fa{color:var(--amber)}.fd{color:var(--dim)}
+
+/* GRID CARDS */
+.grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:28px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px}
+@media(max-width:700px){.grid3{grid-template-columns:1fr}}
+
+.card{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:18px;transition:border-color .2s;position:relative;overflow:hidden}
+.card:hover{border-color:var(--purple)}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--cc,var(--green))}
+.ctitle{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:4px}
+.ctype{font-size:10px;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px}
+.cbody{font-size:12px;color:var(--mid);line-height:1.65}
+.ctags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.tag{font-size:10px;padding:3px 8px;border-radius:4px;background:var(--s2);color:var(--mid);border:1px solid var(--bd)}
+.tag.tg{border-color:var(--green);color:var(--green)}
+.tag.tp{border-color:var(--purple);color:var(--purple)}
+.tag.tb2{border-color:var(--blue);color:var(--blue)}
+
+/* CALLOUT */
+.box{display:flex;gap:12px;border-radius:8px;padding:14px 18px;margin:14px 0;font-size:12px;line-height:1.75}
+.box-icon{flex-shrink:0;font-size:16px}
+.box-body{color:var(--mid)}
+.box-body strong{color:var(--text)}
+.bg{background:rgba(0,229,160,.06);border:1px solid rgba(0,229,160,.18)}
+.bp{background:rgba(108,99,255,.06);border:1px solid rgba(108,99,255,.18)}
+.bb{background:rgba(56,189,248,.06);border:1px solid rgba(56,189,248,.18)}
+.ba{background:rgba(245,166,35,.06);border:1px solid rgba(245,166,35,.18)}
+
+/* PIPELINE STEPS */
+#pipe-steps .pipe-step{cursor:pointer}
+.pipe-step{display:flex;gap:16px;background:var(--s1);border:1px solid var(--bd);border-radius:8px;padding:16px 20px;margin-bottom:12px;transition:border-color .2s,background .2s,box-shadow .2s}
+.pipe-step:hover{border-color:var(--purple)}
+.pipe-step.active{border-color:var(--green);background:rgba(0,229,160,.06);box-shadow:0 0 0 1px rgba(0,229,160,.15)}
+.pipe-num{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--green);flex-shrink:0;line-height:1.2}
+.pipe-content{flex:1;min-width:0}
+.pipe-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px}
+.pipe-body{font-size:12px;color:var(--mid);line-height:1.65}
+
+/* MATRICES */
+.mat-wrap{overflow-x:auto;margin-bottom:24px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{font-family:'Syne',sans-serif;font-weight:700;font-size:11px;padding:10px 12px;background:var(--s2);border:1px solid var(--bd);color:var(--mid);text-align:center;white-space:nowrap}
+th:first-child{text-align:left}
+td{padding:8px 12px;border:1px solid var(--bd);text-align:center;vertical-align:middle}
+td:first-child{font-family:'Syne',sans-serif;font-weight:700;font-size:10px;text-align:left;background:var(--s2);color:var(--mid);white-space:nowrap}
+.cv{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;cursor:pointer;border-radius:5px;padding:4px 8px;display:inline-block;min-width:42px;transition:background .2s}
+.cv:hover{background:var(--s2)}
+.diag{background:var(--s1);color:var(--dim)}
+.chg{background:rgba(0,229,160,.05)!important}
+
+/* LEGEND */
+.legend{display:flex;gap:16px;flex-wrap:wrap;padding:11px 16px;background:var(--s1);border-radius:8px;border:1px solid var(--bd);margin-bottom:20px;font-size:11px;color:var(--mid)}
+.ld{display:flex;align-items:center;gap:7px}
+.ldot{width:9px;height:9px;border-radius:2px}
+
+/* SIMULATOR */
+.sim-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px}
+.sbtn{font-family:'DM Mono',monospace;font-size:11px;padding:8px 14px;border:1px solid var(--bd);background:var(--s1);color:var(--mid);border-radius:8px;cursor:pointer;transition:all .2s;letter-spacing:.06em}
+.sbtn:hover{border-color:var(--purple);color:var(--text)}
+.sbtn.on{border-color:var(--green);color:var(--green);background:rgba(0,229,160,.07)}
+
+.bkt-hdr{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:7px 0 9px;border-bottom:1px solid var(--bd);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.new-tag{font-size:10px;padding:2px 7px;border-radius:4px;background:rgba(56,189,248,.12);color:var(--blue);border:1px solid rgba(56,189,248,.3)}
+
+.mrow{background:var(--s1);border:1px solid var(--bd);border-radius:8px;padding:13px 15px;margin-bottom:8px;cursor:pointer;transition:border-color .2s}
+.mrow:hover{border-color:var(--purple)}
+.mrow-top{display:grid;grid-template-columns:155px 1fr 50px 42px;gap:12px;align-items:center}
+@media(max-width:640px){.mrow-top{grid-template-columns:1fr 50px 42px}}
+.mname{font-family:'Syne',sans-serif;font-size:13px;font-weight:700}
+.mrole{font-size:10px;color:var(--dim);margin-top:2px}
+.sbars{display:flex;flex-direction:column;gap:5px}
+@media(max-width:640px){.sbars{display:none}}
+.srow{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--dim)}
+.slbl2{min-width:76px}
+.sbar{flex:1;height:4px;background:var(--bd);border-radius:2px;overflow:hidden;min-width:50px}
+.sfill{height:100%;border-radius:2px;transition:width .6s ease}
+.sval{min-width:30px;text-align:right}
+.rscore{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;text-align:center}
+.bbdg{font-size:10px;font-weight:700;padding:4px 8px;border-radius:4px;font-family:'Syne',sans-serif;text-align:center}
+.bP1{background:rgba(0,229,160,.12);color:var(--green);border:1px solid rgba(0,229,160,.25)}
+.bPILOT{background:rgba(56,189,248,.12);color:var(--blue);border:1px solid rgba(56,189,248,.25)}
+.bP2{background:rgba(108,99,255,.12);color:var(--purple);border:1px solid rgba(108,99,255,.25)}
+.bP3{background:rgba(245,166,35,.12);color:var(--amber);border:1px solid rgba(245,166,35,.25)}
+
+.expand{display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--bd)}
+.mrow.open .expand{display:block}
+.exp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;font-size:12px;color:var(--mid);line-height:1.65}
+.exp-grid h5{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--text);margin-bottom:5px}
+@media(max-width:640px){.exp-grid{grid-template-columns:1fr}}
+
+/* WEIGHT VIZ */
+.wgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px;margin-bottom:28px}
+.wcard{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:18px}
+.wctitle{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:14px}
+.wrow{display:flex;align-items:center;gap:10px;margin-bottom:7px;font-size:11px}
+.wlbl{width:128px;color:var(--mid);flex-shrink:0}
+.wbar-w{flex:1}
+.wbar{height:5px;background:var(--bd);border-radius:3px;overflow:hidden}
+.wfill{height:100%;border-radius:3px;transition:width .6s}
+.wval{width:32px;text-align:right;color:var(--mid);font-size:11px}
+.wsub{font-size:10px;color:var(--dim);letter-spacing:.08em;text-transform:uppercase;margin:10px 0 7px}
+
+/* BUCKET TABLE */
+.bkt-table{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:28px}
+.bkt-card{border-radius:8px;padding:15px;font-size:12px;line-height:1.65}
+.bkt-name{font-family:'Syne',sans-serif;font-weight:700;font-size:12px;margin-bottom:7px}
+
+/* TOOLTIP */
+.tt{position:fixed;background:var(--s1);border:1px solid var(--green);border-radius:8px;padding:11px 15px;font-size:11px;line-height:1.65;color:var(--mid);max-width:290px;z-index:200;pointer-events:none;display:none}
+.tt-h{font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:var(--text);margin-bottom:4px}
+
+/* PERSONA GRID */
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin-bottom:28px}
+.pcard{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:18px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.pcard::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--pc,var(--green));transform:scaleX(0);transition:transform .2s}
+.pcard:hover::after,.pcard.sel::after{transform:scaleX(1)}
+.pcard.sel{border-color:var(--pc,var(--green));background:var(--s2)}
+.pn-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:3px}
+.pn-role{font-size:10px;color:var(--dim);margin-bottom:11px}
+.pstat{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;font-size:10px;color:var(--mid);padding:4px 0;border-bottom:1px solid var(--bd)}
+.pstat:last-child{border-bottom:none}
+.pstat span:first-child{flex-shrink:0}
+.pstat .v{color:var(--text);text-align:right;min-width:0}
+
+.pdetail{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:22px;margin-top:20px;display:none}
+.pdetail.vis{display:block}
+.pdetail h3{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;margin-bottom:16px}
+.pdg{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;font-size:12px;color:var(--mid);line-height:1.65}
+@media(max-width:600px){.pdg{grid-template-columns:1fr}}
+.pdg h5{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--text);margin-bottom:4px}
+</style>
+</head>
+<body>
+<div class="w">
+<header>
+  <div class="hdr">
+    <div class="hdr-left">
+      <div class="eye">Proof of macth &bull; Proof of Talk &bull; Matching System</div>
+      <h1>AI Connection Engine</h1>
+      <div class="pills">
+        <span class="pill pg">Dual DealReady Dimensions</span>
+        <span class="pill pp">Persona-Aware RankScore</span>
+        <span class="pill pb">PILOT Bucket</span>
+        <span class="pill pa">Stage as Filter Only</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="tb on" data-tab="overview" onclick="sw('overview')">01 &middot; Overview</button>
+  <button class="tb" data-tab="personas" onclick="sw('personas')">02 &middot; Personas</button>
+  <button class="tb" data-tab="architecture" onclick="sw('architecture')">03 &middot; System Architecture</button>
+  <button class="tb" data-tab="model" onclick="sw('model')">04 &middot; Scoring Model</button>
+  <button class="tb" data-tab="weights" onclick="sw('weights')">05 &middot; Persona Weights</button>
+  <button class="tb" data-tab="matrices" onclick="sw('matrices')">06 &middot; Score Matrices</button>
+  <button class="tb" data-tab="simulator" onclick="sw('simulator')">07 &middot; Result Simulator</button>
+</nav>
+
+<!-- 01 OVERVIEW -->
+<div id="pn-overview" class="pn on">
+  <div class="slbl">System Overview</div>
+  <div class="stitle">Matching 2,500 Decision-Makers at Proof of Talk</div>
+  <p class="sdesc">Every attendee is a decision-maker. The engine optimizes for mutual decision quality: a few high-leverage meetings per person, not maximum volume. Three persona groups, each with different decision types, signals, and readiness dimensions.</p>
+
+  <div class="grid2" id="ov-cards"></div>
+
+  <div class="slbl" style="margin-top:8px">Four Connection Drivers (ranked by impact)</div>
+  <div class="stitle">What Actually Makes People Connect</div>
+  <div class="grid2" id="driver-cards"></div>
+
+  <div class="box bg">
+    <div class="box-icon">&#9670;</div>
+    <div class="box-body"><strong>Design principle:</strong> The system does not optimize for "as many meetings as possible." It finds a small set of decision-enabling meetings per persona. Curated, closed formats (VC office hours, invite-only pitch rooms) consistently outperform open expo-hall roaming. The engine replicates this curation at scale.</div>
+  </div>
+</div>
+
+<!-- 02 PERSONAS -->
+<div id="pn-personas" class="pn">
+  <div class="slbl">Case Study Personas</div>
+  <div class="stitle">5 Decision-Makers &mdash; Symmetric Power</div>
+  <p class="sdesc">No persona holds inherent priority. Each has decision power over different outcomes. Click any persona to expand their mandate, signals, and decision type.</p>
+  <div class="pgrid" id="pgrid"></div>
+  <div class="pdetail" id="pdetail"></div>
+</div>
+
+<!-- 03 SYSTEM ARCHITECTURE -->
+<div id="pn-architecture" class="pn">
+  <div class="slbl">System Pipeline</div>
+  <div class="stitle">System Architecture</div>
+  <p class="sdesc">The complete data flow from registration to on-site meeting recommendation. Click a step to focus and scroll.</p>
+
+  <div id="pipe-steps">
+  <div class="pipe-step" data-step="1">
+    <div class="pipe-num">01</div>
+    <div class="pipe-content">
+      <div class="pipe-title">Ingest and Enrich</div>
+      <div class="pipe-body">Registration form data ingested. Enrichment pipeline kicks off immediately: LinkedIn connector, company website, X/Warpcast, Crunchbase/PitchBook. LLM extracts structured mandate, goals, and preference profile. New in v2: OperationalReady signals extracted (sandbox_seeking, product_live, pilot_timeline, compliance_modules).</div>
+    </div>
+  </div>
+  <div class="pipe-step" data-step="2">
+    <div class="pipe-num">02</div>
+    <div class="pipe-content">
+      <div class="pipe-title">Candidate Generation</div>
+      <div class="pipe-body">Two candidate sets built per attendee. Complementary matches set: filtered by persona fit and theme overlap (high-precision). Non-obvious connections set: semantic similarity on rich problem-space embeddings with looser vertical filters (non-obvious discovery). Stage mandate applied as a filter here only.</div>
+    </div>
+  </div>
+  <div class="pipe-step" data-step="3">
+    <div class="pipe-num">03</div>
+    <div class="pipe-content">
+      <div class="pipe-title">Pairwise Scoring</div>
+      <div class="pipe-body">For each pair (A,B): compute MatchScore using persona-specific feature weights. Compute FinancialReady and OperationalReady independently as pairwise min scores. Apply RankScore formula with persona-specific alpha, beta, gamma from the event's weight playbook.</div>
+    </div>
+  </div>
+  <div class="pipe-step" data-step="4">
+    <div class="pipe-num">04</div>
+    <div class="pipe-content">
+      <div class="pipe-title">Rank and Bucket</div>
+      <div class="pipe-body">Sort candidates by RankScore. Assign each pair to P1, PILOT, P2, or P3 based on MatchScore and DealReady thresholds. Apply fairness constraints: per-persona exposure limits, meeting budget caps, dual-sided relevance threshold.</div>
+    </div>
+  </div>
+  <div class="pipe-step" data-step="5">
+    <div class="pipe-num">05</div>
+    <div class="pipe-content">
+      <div class="pipe-title">LLM Explanation Layer</div>
+      <div class="pipe-body">Generate concise contextual explanations for each match using top contributing features. Bucket-specific templates: P1 = capital transaction framing, PILOT = sandbox/partnership framing, P2 = strategic insight framing. Explanations appear in the attendee app match cards.</div>
+    </div>
+  </div>
+  <div class="pipe-step" data-step="6">
+    <div class="pipe-num">06</div>
+    <div class="pipe-content">
+      <div class="pipe-title">Organizer Dashboard</div>
+      <div class="pipe-body">Manual VIP pinning, exposure limit controls, meeting budget optimization, time-slot allocation. Organizers can view the full match matrix and override bucket assignments for top 5-10% of attendees.</div>
+    </div>
+  </div>
+  </div>
+
+  <div class="box bb" style="margin-top:20px">
+    <div class="box-icon">&#9432;</div>
+    <div class="box-body"><strong>Cold-start compatibility:</strong> OperationalReady signals are available from registration data alone (sandbox_seeking flag, product_live flag, pilot_timeline from LLM-parsed free-text). No behavioral interaction history is required. The new dimension is fully functional from the first event, with no cold-start degradation.</div>
+  </div>
+</div>
+
+<!-- 04 SCORING MODEL -->
+<div id="pn-model" class="pn">
+  <div class="slbl">Scoring Architecture</div>
+  <div class="stitle">Three-Stage Model: MatchScore &rarr; DealReady &rarr; RankScore</div>
+  <p class="sdesc">Each pair (A,B) receives three computed scores. MatchScore measures connection quality in principle. DealReady measures actionability now, split across two independent dimensions. RankScore combines them with persona-specific weights.</p>
+
+  <div class="slbl" style="margin-bottom:10px">Stage 1 &mdash; MatchScore Components</div>
+  <div class="grid2" id="ms-cards"></div>
+
+  <div class="slbl" style="margin-bottom:10px">Stage 2 &mdash; DealReady: Two Independent Dimensions</div>
+  <div class="box ba">
+    <div class="box-icon">&#9888;</div>
+    <div class="box-body"><strong>Key design decision:</strong> Financial and operational readiness are orthogonal. A founder with a live product seeking sandbox pilots scores high OperationalReady even if FinancialReady is near zero (not currently raising). Each dimension uses min(readiness_A, readiness_B) independently.</div>
+  </div>
+
+  <div class="grid3" id="dr-cards"></div>
+
+  <div class="slbl" style="margin-bottom:10px">Stage 3 &mdash; Persona-Aware RankScore</div>
+  <div class="formula" id="formula-block"></div>
+
+  <div class="box bp">
+    <div class="box-icon">&#9670;</div>
+    <div class="box-body"><strong>Why persona-aware:</strong> Investors at an event are almost always ready to transact (they came to deploy). Their own readiness is near-constant, so it is not a discriminating signal. What matters is the counterparty readiness. Alpha (counterparty weight) is therefore high for investors; beta (self weight) is near-zero. Regulators use only OperationalReady (gamma = ops) because capital transactions are irrelevant to their mandate.</div>
+  </div>
+
+  <div class="slbl" style="margin-bottom:10px">Stage 4 &mdash; Bucket Assignment</div>
+  <div class="bkt-table" id="bkt-cards"></div>
+
+  <div class="slbl" style="margin-bottom:10px">Stage is a Pre-Retrieval Filter, Not a Scoring Feature</div>
+  <div class="box bb">
+    <div class="box-icon">&#9432;</div>
+    <div class="box-body"><strong>Rule:</strong> Stage (Seed / Series A / B / C+) restricts the candidate pool before scoring based on each investor's stated mandate. Stage does not appear inside MatchScore or DealReady. Within the retrieved pool, readiness is assessed by: actively_raising flag, round_size vs check_size alignment, traction_score (customers, TVL, pilots), and raise_timeline. This prevents early-stage founders from being penalized twice for the same underlying fact.</div>
+  </div>
+</div>
+
+<!-- 05 PERSONA WEIGHTS -->
+<div id="pn-weights" class="pn">
+  <div class="slbl">Configuration Layer</div>
+  <div class="stitle">Persona Weight Vectors</div>
+  <p class="sdesc">Each persona uses a different weight vector for MatchScore features and a different (alpha, beta, gamma) triplet for RankScore. Stored as a JSON playbook per event type. Changing the playbook changes the behavior across the entire engine with no code changes.</p>
+  <div class="wgrid" id="wgrid"></div>
+  <div class="box bg">
+    <div class="box-icon">&#9670;</div>
+    <div class="box-body"><strong>Scalability:</strong> To configure a new Proof of macth portfolio event, update the JSON weight playbook only. A policy-focused summit: increase IntentOverlap and ThematicFit for regulators, set gamma=ops for all personas. A demo day: increase CredibilityScore weight for investors, set gamma=fin. The scoring engine is identical across all deployments.</div>
+  </div>
+</div>
+
+<!-- 06 SCORE MATRICES -->
+<div id="pn-matrices" class="pn">
+  <div class="slbl">Score Matrices</div>
+  <div class="stitle">MatchScore + FinancialReady + OperationalReady</div>
+  <p class="sdesc">Three matrices for five personas. Hover any cell for rationale. MatchScore measures connection quality. The two DealReady matrices are independent. All three feed into RankScore via the persona-aware formula.</p>
+
+  <div class="legend">
+    <div class="ld"><div class="ldot" style="background:#00e5a0"></div>0.85-1.0 Extremely strong</div>
+    <div class="ld"><div class="ldot" style="background:#6c63ff"></div>0.65-0.84 Strong</div>
+    <div class="ld"><div class="ldot" style="background:#f5a623"></div>0.40-0.64 Meaningful</div>
+    <div class="ld"><div class="ldot" style="background:#ff6b6b"></div>&lt;0.40 Weak</div>
+  </div>
+
+  <div class="slbl" style="margin-bottom:10px">MatchScore Matrix</div>
+  <div class="mat-wrap" id="mat-ms"></div>
+  <div style="height:24px"></div>
+  <div class="slbl" style="margin-bottom:10px">FinancialReady Matrix &mdash; capital deployment / fundraising</div>
+  <div class="mat-wrap" id="mat-fr"></div>
+  <div style="height:24px"></div>
+  <div class="slbl" style="margin-bottom:10px">OperationalReady Matrix &mdash; pilots, sandboxes, infra partnerships</div>
+  <div class="mat-wrap" id="mat-or"></div>
+</div>
+
+<!-- 07 SIMULATOR -->
+<div id="pn-simulator" class="pn">
+  <div class="slbl">Live Match Simulator</div>
+  <div class="stitle">Select Attendee &rarr; See Ranked Shortlist</div>
+  <p class="sdesc">Choose a primary attendee to generate their ranked shortlist. Bucketed by P1 / PILOT / P2 / P3. Click any row to expand the scoring breakdown.</p>
+  <div class="sim-bar" id="sim-bar"></div>
+  <div id="sim-out"></div>
+</div>
+
+</div><!-- /w -->
+
+<div class="tt" id="tt"><div class="tt-h" id="tth"></div><div id="ttb"></div></div>
+
+<script>
+// ===================================================
+// DATA (all string literals use escaped apostrophes)
+// ===================================================
+
+var PERSONAS = [
+  { id:'P1', name:'Amara K.', role:'SWF Allocator', org:'Abu Dhabi SWF', type:'investor', color:'#00e5a0',
+    stats:[['AUM','$200M earmarked RWA'],['Stage focus','Series B+'],['Mandate','Deploy into RWA and infra'],['Deal-readiness','High, actively deploying']],
+    looking:'Highly filtered institutional-grade infra founders, co-investors, regulatory intelligence for de-risking',
+    signals:'Fund vintage, check size match, thesis alignment, GP track record in vertical, portfolio quality',
+    decisions:'Allocate capital to RWA infra, identify co-investment GPs, de-risk thesis via regulatory insight' },
+  { id:'P2', name:'Marcus T.', role:'Founder / CEO', org:'VaultBridge Series B', type:'founder', color:'#6c63ff',
+    stats:[['Stage','Series B ($40M raised)'],['Clients','Live with European banks'],['Mandate','Strategic capital + sandbox pilots'],['Deal-readiness','High, open to SWF and growth VC']],
+    looking:'Strategic investors (SWFs, growth VCs), regulatory sandbox access, infra integration partners',
+    signals:'Institutional traction, audited contracts, bank clients, live product, clear round parameters',
+    decisions:'Choose investors and partners, engage regulators for CBDC pilots, build infra ecosystem' },
+  { id:'P3', name:'Elena S.', role:'GP / Fund Manager', org:'$500M TradFi-DeFi VC', type:'investor', color:'#00e5a0',
+    stats:[['AUM','$500M, infra/TradFi-DeFi'],['Stage focus','Series A-B'],['Mandate','Actively deploying in infra vertical'],['Deal-readiness','High, top of pipeline needed']],
+    looking:'On-thesis founders, LP/allocator relationships, co-investors, regulatory intelligence for portfolio',
+    signals:'Founder quality, portfolio fit, token vs equity model, follow-on capacity, institutional traction',
+    decisions:'Add to active pipeline, introduce portfolio companies, co-invest with allocators like Amara' },
+  { id:'P4', name:'James W.', role:'Co-founder / CTO', org:'NexaLayer L2', type:'founder', color:'#ff6b6b',
+    stats:[['Stage','Series A range'],['Focus','Compliance-first L2 for institutions'],['Mandate','Investor + regulatory sandbox'],['Deal-readiness','High for pilots; raising is secondary']],
+    looking:'Series A investor with infra thesis, regulatory sandbox access (CBDC/MiCA), infra integration partner',
+    signals:'Compliance modules, MiCA-alignment, institutional customer pipeline, audited code, live testnet',
+    decisions:'Choose lead investor, engage regulator pilots, partner with custody/settlement infra' },
+  { id:'P5', name:'Sophie M.', role:'Policy Lead', org:'Deutsche Bundesbank', type:'regulator', color:'#f5a623',
+    stats:[['Institution','Central Bank (G7)'],['Mandate','CBDC and MiCA implementation'],['Seeking','Sandbox participants, infra partners'],['Deal-readiness','High for pilots, zero for capital']],
+    looking:'Compliance-first builders, compliance-ready products, systemic risk intelligence from large allocators',
+    signals:'Regulatory compliance posture, governance quality, KYC/AML, sandbox eligibility, MiCA readiness',
+    decisions:'Select sandbox participants, inform MiCA guidance, understand systemic exposure through infra' }
+];
+
+var OV_CARDS = [
+  { color:'#00e5a0', icon:'&#128188;', title:'Investors', body:'Angels, crypto-native funds, generalist VCs, family offices. Want a shortlist of 3-7 on-thesis founders and strategic partners they could not find elsewhere. Highly time-constrained at events.', tags:['Angels','Crypto-native Funds','Generalist VCs','Family Offices'] },
+  { color:'#6c63ff', icon:'&#128640;', title:'Entrepreneurs', body:'Pre-product founders through later-stage operators. Want strategic capital plus partners: distribution, infra, regulators to unblock use cases. Explicitly do not want 30 shallow coffee chats.', tags:['Pre-product','MVP to Series A','Series B+'] },
+  { color:'#f5a623', icon:'&#9878;', title:'Regulators / Policy', body:'Central banks, securities staff, policy advisers, law firms. Constrained by attention and reputational risk. Want high-signal conversations that can inform frameworks, not random pitches.', tags:['National Regulators','Law Firms','Standards Bodies'] }
+];
+
+var DRIVER_CARDS = [
+  { color:'#00e5a0', title:'1. Thesis Fit', body:'Sector, stage, geography, check/token economics must match. Necessary but not sufficient. Gets you into the maybe bucket, not the must-meet bucket.' },
+  { color:'#6c63ff', title:'2. Warm-Intro Graph', body:'70-80% of successful first raises come via warm introductions, often from portfolio founders. Cold approaches and raw LinkedIn presence are far weaker signals.' },
+  { color:'#38bdf8', title:'3. Proof of Work', body:'Shipped product, live code, audited contracts, traction. Separates serious actors from tourists and makes every persona lean in.' },
+  { color:'#f5a623', title:'4. Targeted Outreach', body:'Showing you understand the counterparty\'s mandate makes it feel like collaboration. "I saw your fund backed X, can we discuss how they solved liquidity Y?" beats any cold pitch.' }
+];
+
+var MS_CARDS = [
+  { color:'#00e5a0', title:'PersonaFit(A,B)', type:'Structural', body:'Does this persona pair create value? Investor-Founder = high. Peer pairs (Founder-Founder, Investor-Investor co-invest) = medium. Stage is not a component here; it is a pre-retrieval filter only.', tags:['High: Inv-Founder','Med: Peer pairs'] },
+  { color:'#6c63ff', title:'IntentOverlap(A,B)', type:'Mandate-level', body:'LLM-extracted intent alignment from registration free-text. Deploy RWA capital vs Raise RWA infra Series B = high. CBDC sandbox vs compliance-first L2 = high. Symmetric, complementary pairs score highest.', tags:['LLM-parsed','Complementary intents'] },
+  { color:'#38bdf8', title:'ThematicFit(A,B)', type:'Taxonomy', body:'Normalized vertical, regulatory, and geographic tags. High when major tags share RWA, CBDC, L2, custody, MiCA, institutional DeFi. Drives both complementary and non-obvious candidate paths.', tags:['Sector tags','Regulatory overlap','Geography'] },
+  { color:'#f5a623', title:'ComplementaryScore(A,B)', type:'Composite', body:'Function of PersonaFit + IntentOverlap + ThematicFit. High when persona pair is complementary, intents are matched, and themes align. Primary driver for P1 and PILOT candidate generation.', tags:['C-set primary','Drives P1/PILOT'] },
+  { color:'#ff6b6b', title:'NonObviousnessScore(A,B)', type:'Semantic', body:'Semantic similarity on problem-space embeddings. High when embedding similarity is high but coarse vertical tags differ. Example: gaming infra CEO and insurance protocol founder both solving identity verification.', tags:['N-set secondary','Insight lane'] },
+  { color:'#a78bfa', title:'CredibilityScore(A,B)', type:'Quality Signal', body:'Normalized per persona. Founders: traction, audits, institutional clients. Investors: AUM, deals in vertical, fund vintage. Regulators: institution seniority, active programs. Not penalized by stage label alone.', tags:['Stage-agnostic','Traction-based'] }
+];
+
+var DR_CARDS = [
+  { color:'#00e5a0', title:'FinancialReady(A,B)', type:'Capital Dimension', body:'High when both sides can act on a capital transaction: founder is actively raising (flag + round size + timeline), investor is actively deploying (fund vintage, check size match, recent deals in vertical). Uses min() within this dimension only.' },
+  { color:'#38bdf8', title:'OperationalReady(A,B)', type:'Pilot / Product Dimension', body:'High when both sides can start a non-capital transaction: founder has a live product ready for pilots, regulator is running an active sandbox, corporate is evaluating infra vendors. Entirely independent of whether anyone is raising capital.' },
+  { color:'#6c63ff', title:'Pairwise min() Logic', type:'Aggregation Rule', body:'Each dimension uses min(readiness_A, readiness_B) within its own scope. A pair with FinancialReady=0.10 and OperationalReady=0.85 is correctly identified as a PILOT candidate, not buried in P3 by a collapsed single score.' }
+];
+
+var BKT_CARDS = [
+  { color:'#00e5a0', name:'P1 Priority', cond:'MatchScore >= 0.70 AND FinancialReady >= 0.70', cta:'Schedule at the event (Louvre slot)', body:'Capital transaction likely in 12-18 months. Both sides actively transacting on the financial dimension.' },
+  { color:'#38bdf8', name:'PILOT Sandbox Track', cond:'MatchScore >= 0.70 AND OperationalReady >= 0.65 AND FinancialReady < 0.70', cta:'Book sandbox or partnership meeting', body:'Non-capital transaction: pilot, infra integration, regulatory sandbox. Product-ready founder meets regulator or corporate. New bucket absent in v1.' },
+  { color:'#6c63ff', name:'P2 Strategic / Insight', cond:'MatchScore >= 0.65 AND max(FinancialReady, OperationalReady) >= 0.40', cta:'Meet if time allows, high insight value', body:'Strong connection but timing or readiness is partial on both dimensions. Non-obvious connections and future pipeline.' },
+  { color:'#f5a623', name:'P3 Future Pipeline', cond:'MatchScore >= 0.40 AND max(FinancialReady, OperationalReady) < 0.40', cta:'Follow up post-event', body:'Relationship worth building. No near-term transaction in either dimension. Do not discard; schedule as secondary.' }
+];
+
+var W_DATA = [
+  { label:'Investor (Amara, Elena)', type:'investor', color:'#00e5a0',
+    features:[['PersonaFit',30],['IntentOverlap',25],['ThematicFit',20],['Complementary',15],['Credibility',10]],
+    rank:[['alpha (counterparty)',60],['beta (self)',5],['gamma','fin (financial)']] },
+  { label:'Founder (Marcus, James)', type:'founder', color:'#6c63ff',
+    features:[['PersonaFit',25],['IntentOverlap',25],['ThematicFit',20],['Complementary',15],['Credibility',15]],
+    rank:[['alpha (counterparty)',50],['beta (self)',10],['gamma','max(fin, ops)']] },
+  { label:'Regulator (Sophie)', type:'regulator', color:'#f5a623',
+    features:[['PersonaFit',20],['IntentOverlap',30],['ThematicFit',30],['Complementary',10],['Credibility',10]],
+    rank:[['alpha (counterparty)',20],['beta (self)',5],['gamma','ops (operational)']] }
+];
+
+// Score data
+var IDS = ['P1','P2','P3','P4','P5'];
+var NAMES = {P1:'Amara',P2:'Marcus',P3:'Elena',P4:'James',P5:'Sophie'};
+
+var MS_DATA = {
+  P1:{P2:0.95,P3:0.90,P4:0.70,P5:0.60},
+  P2:{P1:0.95,P3:0.95,P4:0.70,P5:0.60},
+  P3:{P1:0.90,P2:0.95,P4:0.95,P5:0.65},
+  P4:{P1:0.70,P2:0.70,P3:0.95,P5:0.90},
+  P5:{P1:0.60,P2:0.60,P3:0.65,P4:0.90}
+};
+
+var FR_DATA = {
+  P1:{P2:0.90,P3:0.90,P4:0.55,P5:0.10},
+  P2:{P1:0.90,P3:0.90,P4:0.50,P5:0.15},
+  P3:{P1:0.90,P2:0.90,P4:0.90,P5:0.15},
+  P4:{P1:0.55,P2:0.50,P3:0.90,P5:0.10},
+  P5:{P1:0.10,P2:0.15,P3:0.15,P4:0.10}
+};
+
+var OR_DATA = {
+  P1:{P2:0.70,P3:0.65,P4:0.70,P5:0.35},
+  P2:{P1:0.70,P3:0.70,P4:0.75,P5:0.65},
+  P3:{P1:0.65,P2:0.70,P4:0.75,P5:0.40},
+  P4:{P1:0.70,P2:0.75,P3:0.75,P5:0.85},
+  P5:{P1:0.35,P2:0.65,P3:0.40,P4:0.85}
+};
+
+var MATCH_RAT = {
+  'P1-P2':'Amara deploys $200M into RWA/infra; Marcus is Series B custody/settlement live with European banks. Direct complementarity.',
+  'P1-P3':'LP/GP co-investment. Elena actively deploys into infra matching Amara\'s mandate with strong co-invest potential.',
+  'P1-P4':'NexaLayer compliance L2 is future infrastructure for Amara\'s institutional DeFi thesis. Strategic rails.',
+  'P1-P5':'Sophie\'s regulatory perspective on RWA and tokenization is strategic intelligence for Amara.',
+  'P2-P3':'Ideal VC-founder fit. Elena\'s fund is on-thesis for TradFi-DeFi infra at Series B with clear follow-on capacity.',
+  'P2-P4':'Non-obvious: L2 and custody/settlement solve complementary problems for the same institutional client base.',
+  'P2-P5':'VaultBridge custody/settlement infra informs CBDC and tokenized securities architecture.',
+  'P3-P4':'Extremely strong. NexaLayer is precisely the TradFi-DeFi infra intersection Elena invests in.',
+  'P3-P5':'Policy intelligence for portfolio de-risking. Sophie gets a picture of infra bets shaping the market.',
+  'P4-P5':'Direct sandbox fit. Sophie runs CBDC/MiCA experiments; James has a compliance-first L2 purpose-built for this.'
+};
+
+var FIN_RAT = {
+  'P1-P2':'Both actively transacting: Amara has $200M to deploy; Marcus is Series B open to SWF investors.',
+  'P1-P3':'LP/GP with high mutual readiness: Amara allocates to funds; Elena is actively deploying in-vertical.',
+  'P1-P4':'Moderate: James may seek strategic capital but immediate SWF allocation is less clear. More pilot-first.',
+  'P1-P5':'Near-zero: central bank vs capital allocator. No financial transaction in 12-18 month horizon.',
+  'P2-P3':'Both ready: Marcus at $40M Series B target; Elena has capital at this stage and thesis.',
+  'P2-P4':'Low: infra partnership potential but no imminent capital round between two founders.',
+  'P2-P5':'Near-zero for equity or revenue: central bank does not deploy commercial capital.',
+  'P3-P4':'High: if James is raising at Elena\'s stage and check size, this is P1 capital territory.',
+  'P3-P5':'Near-zero: Elena deploys capital; Sophie does not. No financial deal.',
+  'P4-P5':'Effectively zero: CBDC sandbox pilot is not a financial transaction.'
+};
+
+var OPS_RAT = {
+  'P1-P2':'High: Amara can pilot VaultBridge custody as infrastructure for tokenized asset management.',
+  'P1-P3':'Medium: fund partnership and strategic alliance is an operational relationship beyond equity.',
+  'P1-P4':'High: Amara can integrate NexaLayer compliance L2 as rails for institutional DeFi allocations.',
+  'P1-P5':'Low: SWF and central bank overlap is strategic dialogue, not concrete operational collaboration.',
+  'P2-P3':'High: Elena\'s portfolio companies could partner with VaultBridge for custody services.',
+  'P2-P4':'High: L2 and custody stack integration is a concrete technical partnership. Both have live products.',
+  'P2-P5':'High: VaultBridge can participate in Bundesbank CBDC and tokenized securities pilots. Live infrastructure match.',
+  'P3-P4':'High: Elena portfolio companies could build on NexaLayer. Portfolio advisory beyond equity.',
+  'P3-P5':'Medium: Sophie wants portfolio-level systemic risk intelligence from a leading infrastructure fund.',
+  'P4-P5':'Very high: Both actively seeking sandbox engagement. NexaLayer is purpose-built for MiCA compliance.'
+};
+
+// ===================================================
+// UTILS
+// ===================================================
+function sc(v) {
+  if (v >= 0.85) return '#00e5a0';
+  if (v >= 0.65) return '#6c63ff';
+  if (v >= 0.40) return '#f5a623';
+  return '#ff6b6b';
+}
+
+function bucket(ms, fr, ops) {
+  if (ms >= 0.70 && fr >= 0.70) return 'P1';
+  if (ms >= 0.70 && ops >= 0.65 && fr < 0.70) return 'PILOT';
+  if (ms >= 0.65 && Math.max(fr, ops) >= 0.40) return 'P2';
+  if (ms >= 0.40) return 'P3';
+  return 'P3';
+}
+
+function rankScore(ptype, ms, fr_cp, ops_cp, fr_s, ops_s) {
+  var cfg = {investor:{a:0.60,b:0.05,g:'fin'}, founder:{a:0.50,b:0.10,g:'max'}, regulator:{a:0.20,b:0.05,g:'ops'}};
+  var c = cfg[ptype] || cfg.founder;
+  var dr_cp = c.g === 'fin' ? fr_cp : c.g === 'ops' ? ops_cp : Math.max(fr_cp, ops_cp);
+  var dr_s  = c.g === 'fin' ? fr_s  : c.g === 'ops' ? ops_s  : Math.max(fr_s, ops_s);
+  return ms * (1 + c.a * dr_cp + c.b * dr_s);
+}
+
+function pairKey(a, b) {
+  var arr = [a, b].sort();
+  return arr[0] + '-' + arr[1];
+}
+
+// ===================================================
+// RENDER HELPERS
+// ===================================================
+function mkCard(c) {
+  var tagsHtml = '';
+  if (c.tags) {
+    tagsHtml = '<div class="ctags">' + c.tags.map(function(t){ return '<span class="tag">' + t + '</span>'; }).join('') + '</div>';
+  }
+  return '<div class="card" style="--cc:' + c.color + '">' +
+    (c.icon ? '<div style="font-size:22px;margin-bottom:10px">' + c.icon + '</div>' : '') +
+    '<div class="ctitle">' + c.title + '</div>' +
+    (c.type ? '<div class="ctype">' + c.type + '</div>' : '') +
+    '<div class="cbody">' + c.body + '</div>' +
+    tagsHtml + '</div>';
+}
+
+// ===================================================
+// RENDER: OVERVIEW
+// ===================================================
+function renderOverview() {
+  var el = document.getElementById('ov-cards');
+  el.innerHTML = OV_CARDS.map(mkCard).join('');
+  var el2 = document.getElementById('driver-cards');
+  el2.innerHTML = DRIVER_CARDS.map(mkCard).join('');
+}
+
+// ===================================================
+// RENDER: PERSONAS
+// ===================================================
+function renderPersonas() {
+  var grid = document.getElementById('pgrid');
+  grid.innerHTML = PERSONAS.map(function(p) {
+    return '<div class="pcard" id="pc-' + p.id + '" onclick="selP(\'' + p.id + '\')" style="--pc:' + p.color + '">' +
+      '<div class="pn-name" style="color:' + p.color + '">' + p.id + ' &bull; ' + p.name + '</div>' +
+      '<div class="pn-role">' + p.role + ' &bull; ' + p.org + '</div>' +
+      p.stats.map(function(s){ return '<div class="pstat"><span>' + s[0] + ':</span><span class="v">' + s[1] + '</span></div>'; }).join('') +
+      '</div>';
+  }).join('');
+}
+
+function selP(id) {
+  document.querySelectorAll('.pcard').forEach(function(c){ c.classList.remove('sel'); });
+  document.getElementById('pc-' + id).classList.add('sel');
+  var p = PERSONAS.find(function(x){ return x.id === id; });
+  var det = document.getElementById('pdetail');
+  det.className = 'pdetail vis';
+  det.innerHTML = '<h3 style="color:' + p.color + '">' + p.id + ' &bull; ' + p.name + ' &mdash; ' + p.role + '</h3>' +
+    '<div class="pdg">' +
+    '<div><h5>Looking For</h5><p>' + p.looking + '</p></div>' +
+    '<div><h5>Key Signals</h5><p>' + p.signals + '</p></div>' +
+    '<div><h5>Decisions to Make</h5><p>' + p.decisions + '</p></div>' +
+    '</div>';
+}
+
+// ===================================================
+// RENDER: MODEL
+// ===================================================
+function renderModel() {
+  document.getElementById('ms-cards').innerHTML = MS_CARDS.map(mkCard).join('');
+  document.getElementById('dr-cards').innerHTML = DR_CARDS.map(mkCard).join('');
+  document.getElementById('formula-block').innerHTML =
+    '<span class="fd">// Persona-Aware RankScore Formula</span><br>' +
+    'RankScore(A,B) = MatchScore(A,B) &times; (1 + <span class="fp">&alpha;(A)</span> &times; <span class="fb">DealReady_B</span> + <span class="fp">&beta;(A)</span> &times; <span class="fa">DealReady_A</span>)<br><br>' +
+    '<span class="fd">where  DealReady = FinancialReady     if &gamma; = "fin"</span><br>' +
+    '<span class="fd">                  OperationalReady   if &gamma; = "ops"</span><br>' +
+    '<span class="fd">                  max(Fin, Ops)      if &gamma; = "max"</span><br><br>' +
+    '<span class="fd">// Investor:   &alpha;=0.60  &beta;=0.05  &gamma;="fin"   &rarr; counterparty financial readiness drives rank</span><br>' +
+    '<span class="fd">// Founder:    &alpha;=0.50  &beta;=0.10  &gamma;="max"  &rarr; either capital or pilot readiness counts</span><br>' +
+    '<span class="fd">// Regulator:  &alpha;=0.20  &beta;=0.05  &gamma;="ops"  &rarr; only operational/sandbox readiness applies</span>';
+
+  document.getElementById('bkt-cards').innerHTML = BKT_CARDS.map(function(b) {
+    return '<div class="bkt-card" style="background:rgba(0,0,0,.3);border:1px solid ' + b.color + '20">' +
+      '<div class="bkt-name" style="color:' + b.color + '">' + b.name + '</div>' +
+      '<div style="font-size:11px;color:#4a4a6a;margin-bottom:6px">' + b.cond + '</div>' +
+      '<div style="font-size:11px;color:' + b.color + ';margin-bottom:7px;font-style:italic">CTA: ' + b.cta + '</div>' +
+      '<div style="font-size:12px;color:#8888aa">' + b.body + '</div></div>';
+  }).join('');
+}
+
+// ===================================================
+// RENDER: WEIGHTS
+// ===================================================
+function renderWeights() {
+  document.getElementById('wgrid').innerHTML = W_DATA.map(function(w) {
+    var feats = w.features.map(function(f) {
+      return '<div class="wrow"><div class="wlbl">' + f[0] + '</div>' +
+        '<div class="wbar-w"><div class="wbar"><div class="wfill" style="width:' + (f[1]*3) + '%;background:' + w.color + '"></div></div></div>' +
+        '<div class="wval">' + f[1] + '%</div></div>';
+    }).join('');
+    var rk = w.rank.map(function(r) {
+      if (typeof r[1] === 'number') {
+        return '<div class="wrow"><div class="wlbl">' + r[0] + '</div>' +
+          '<div class="wbar-w"><div class="wbar"><div class="wfill" style="width:' + r[1] + '%;background:' + w.color + '"></div></div></div>' +
+          '<div class="wval">' + r[1] + '%</div></div>';
+      }
+      return '<div class="wrow"><div class="wlbl">' + r[0] + '</div><div style="flex:1;font-size:11px;color:' + w.color + '">' + r[1] + '</div></div>';
+    }).join('');
+    return '<div class="wcard">' +
+      '<div class="wctitle" style="color:' + w.color + '">' + w.label + '</div>' +
+      '<div class="wsub">MatchScore Feature Weights</div>' + feats +
+      '<div class="wsub">RankScore Config (&alpha;, &beta;, &gamma;)</div>' + rk +
+      '</div>';
+  }).join('');
+}
+
+// ===================================================
+// RENDER: MATRICES
+// ===================================================
+function scoreToColor(v) { return sc(v); }
+
+function mkMatrix(containerId, data, rationale) {
+  var cols = IDS;
+  var html = '<table><thead><tr><th style="min-width:100px">Score</th>';
+  cols.forEach(function(id) { html += '<th>' + id + '&middot;' + NAMES[id] + '</th>'; });
+  html += '</tr></thead><tbody>';
+  IDS.forEach(function(row) {
+    html += '<tr><td>' + row + '&middot;' + NAMES[row] + '</td>';
+    cols.forEach(function(col) {
+      if (row === col) { html += '<td class="diag">&mdash;</td>'; return; }
+      var v = data[row] ? data[row][col] : undefined;
+      if (v === undefined) { html += '<td class="diag">n/a</td>'; return; }
+      var k = pairKey(row, col);
+      var rat = rationale[k] || '';
+      var c = scoreToColor(v);
+      var ratEsc = rat.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\r?\n/g, ' ');
+      html += '<td><span class="cv" style="color:' + c + '"' +
+        ' onmouseenter="showTT(event,\'' + row + '&harr;' + col + '\',\'' + ratEsc + '\')"' +
+        ' onmouseleave="hideTT()">' + v.toFixed(2) + '</span></td>';
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById(containerId).innerHTML = html;
+}
+
+function renderMatrices() {
+  mkMatrix('mat-ms', MS_DATA, MATCH_RAT);
+  mkMatrix('mat-fr', FR_DATA, FIN_RAT);
+  mkMatrix('mat-or', OR_DATA, OPS_RAT);
+}
+
+// ===================================================
+// RENDER: SIMULATOR
+// ===================================================
+function renderSimBar() {
+  document.getElementById('sim-bar').innerHTML = PERSONAS.map(function(p) {
+    return '<button class="sbtn" id="sb-' + p.id + '" onclick="runSim(\'' + p.id + '\')">' + p.id + '&middot;' + p.name.split(' ')[0] + '</button>';
+  }).join('');
+}
+
+function runSim(id) {
+  document.querySelectorAll('.sbtn').forEach(function(b){ b.classList.remove('on'); });
+  var btn = document.getElementById('sb-' + id);
+  if (btn) btn.classList.add('on');
+
+  var primary = PERSONAS.find(function(p){ return p.id === id; });
+  var ptype = primary.type;
+
+  var candidates = PERSONAS.filter(function(p){ return p.id !== id; }).map(function(c) {
+    var ms   = (MS_DATA[id] && MS_DATA[id][c.id]) ? MS_DATA[id][c.id] : 0;
+    var fr_cp = (FR_DATA[id] && FR_DATA[id][c.id]) ? FR_DATA[id][c.id] : 0;
+    var ops_cp = (OR_DATA[id] && OR_DATA[id][c.id]) ? OR_DATA[id][c.id] : 0;
+    var fr_s  = (FR_DATA[c.id] && FR_DATA[c.id][id]) ? FR_DATA[c.id][id] : 0;
+    var ops_s  = (OR_DATA[c.id] && OR_DATA[c.id][id]) ? OR_DATA[c.id][id] : 0;
+    var rs = rankScore(ptype, ms, fr_cp, ops_cp, fr_s, ops_s);
+    var bkt = bucket(ms, fr_cp, ops_cp);
+    var k = pairKey(id, c.id);
+    return { p:c, ms:ms, fr:fr_cp, ops:ops_cp, rs:rs, bkt:bkt, k:k };
+  });
+  candidates.sort(function(a,b){ return b.rs - a.rs; });
+
+  var ORDER = ['P1','PILOT','P2','P3'];
+  var LABELS = {
+    P1:'P1 &bull; Priority Capital Meetings &mdash; Schedule at the Louvre',
+    PILOT:'PILOT &bull; Sandbox &amp; Operational Track',
+    P2:'P2 &bull; Strategic &amp; Non-obvious',
+    P3:'P3 &bull; Future Pipeline'
+  };
+  var BCOLORS = {P1:'var(--green)',PILOT:'var(--blue)',P2:'var(--purple)',P3:'var(--amber)'};
+
+  var groups = {P1:[],PILOT:[],P2:[],P3:[]};
+  candidates.forEach(function(c){ if (groups[c.bkt]) groups[c.bkt].push(c); });
+
+  var cfgLabel = {investor:'&alpha;=0.60 &beta;=0.05 &gamma=fin', founder:'&alpha;=0.50 &beta;=0.10 &gamma=max', regulator:'&alpha;=0.20 &beta;=0.05 &gamma=ops'};
+  var html = '<div style="font-size:12px;color:var(--mid);margin-bottom:18px">Shortlist for <strong style="color:' + primary.color + '">' + id + '&bull;' + primary.name + '</strong> (' + primary.type + ') &mdash; ' + (cfgLabel[ptype] || '') + '</div>';
+
+  ORDER.forEach(function(bkt) {
+    if (!groups[bkt] || !groups[bkt].length) return;
+    html += '<div style="margin-bottom:20px"><div class="bkt-hdr" style="color:' + BCOLORS[bkt] + '">' + LABELS[bkt];
+    if (bkt === 'PILOT') html += ' <span class="new-tag">NEW BUCKET</span>';
+    html += '</div>';
+
+    groups[bkt].forEach(function(c) {
+      var msC = sc(c.ms), frC = sc(c.fr), opsC = sc(c.ops), rsC = sc(c.rs/1.6);
+      var matchExp  = MATCH_RAT[c.k] || '';
+      var finExp    = FIN_RAT[c.k]   || '';
+      var opsExp    = OPS_RAT[c.k]   || '';
+      html += '<div class="mrow" id="mr-' + id + '-' + c.p.id + '" onclick="togRow(\'' + id + '-' + c.p.id + '\')">' +
+        '<div class="mrow-top">' +
+        '<div><div class="mname" style="color:' + c.p.color + '">' + c.p.id + '&bull;' + c.p.name + '</div><div class="mrole">' + c.p.role + '</div></div>' +
+        '<div class="sbars">' +
+        '<div class="srow"><span class="slbl2">MatchScore</span><div class="sbar"><div class="sfill" style="width:' + (c.ms*100) + '%;background:' + msC + '"></div></div><div class="sval" style="color:' + msC + '">' + c.ms.toFixed(2) + '</div></div>' +
+        '<div class="srow"><span class="slbl2">FinancialReady</span><div class="sbar"><div class="sfill" style="width:' + (c.fr*100) + '%;background:' + frC + '"></div></div><div class="sval" style="color:' + frC + '">' + c.fr.toFixed(2) + '</div></div>' +
+        '<div class="srow"><span class="slbl2">OpsReady</span><div class="sbar"><div class="sfill" style="width:' + (c.ops*100) + '%;background:' + opsC + '"></div></div><div class="sval" style="color:' + opsC + '">' + c.ops.toFixed(2) + '</div></div>' +
+        '</div>' +
+        '<div class="rscore" style="color:' + rsC + '">' + c.rs.toFixed(2) + '</div>' +
+        '<div class="bbdg b' + bkt + '">' + bkt + '</div>' +
+        '</div>' +
+        '<div class="expand">' +
+        '<div class="exp-grid">' +
+        '<div><h5>Why meet</h5><p>' + matchExp + '</p></div>' +
+        '<div><h5>Financial signal</h5><p>' + finExp + '</p></div>' +
+        '<div><h5>Operational signal</h5><p>' + opsExp + '</p></div>' +
+        '</div></div></div>';
+    });
+    html += '</div>';
+  });
+
+  document.getElementById('sim-out').innerHTML = html;
+}
+
+function togRow(key) {
+  var el = document.getElementById('mr-' + key);
+  if (el) el.classList.toggle('open');
+}
+
+// ===================================================
+// TOOLTIP (viewport-clamped so it never overflows)
+// ===================================================
+function clampTooltipPosition(x, y) {
+  var t = document.getElementById('tt');
+  var pad = 12;
+  var maxW = 290;
+  var maxH = 280;
+  var w = window.innerWidth;
+  var h = window.innerHeight;
+  var left = x + 14;
+  var top = y - 50;
+  if (left + maxW + pad > w) left = w - maxW - pad;
+  if (left < pad) left = pad;
+  if (top + maxH + pad > h) top = h - maxH - pad;
+  if (top < pad) top = pad;
+  t.style.left = left + 'px';
+  t.style.top = top + 'px';
+}
+
+function showTT(e, title, body) {
+  var t = document.getElementById('tt');
+  document.getElementById('tth').innerHTML = title;
+  document.getElementById('ttb').textContent = body;
+  t.style.display = 'block';
+  clampTooltipPosition(e.clientX, e.clientY);
+}
+function hideTT() { document.getElementById('tt').style.display = 'none'; }
+document.addEventListener('mousemove', function(e) {
+  var t = document.getElementById('tt');
+  if (t.style.display === 'block') {
+    clampTooltipPosition(e.clientX, e.clientY);
+  }
+});
+
+// ===================================================
+// TABS
+// ===================================================
+function sw(name) {
+  document.querySelectorAll('.pn').forEach(function(p){ p.classList.remove('on'); });
+  document.querySelectorAll('.tb').forEach(function(b){ b.classList.remove('on'); });
+  var panel = document.getElementById('pn-' + name);
+  if (panel) panel.classList.add('on');
+  var btn = document.querySelector('.tb[data-tab="' + name + '"]');
+  if (btn) btn.classList.add('on');
+}
+
+// ===================================================
+// INIT
+// ===================================================
+document.addEventListener('DOMContentLoaded', function() {
+  renderOverview();
+  renderPersonas();
+  renderModel();
+  renderWeights();
+  renderMatrices();
+  renderSimBar();
+  runSim('P4'); // default to James for PILOT bucket visibility
+
+  var pipeSteps = document.getElementById('pipe-steps');
+  if (pipeSteps) {
+    pipeSteps.addEventListener('click', function(e) {
+      var step = e.target.closest('.pipe-step');
+      if (!step) return;
+      document.querySelectorAll('.pipe-step').forEach(function(s) { s.classList.remove('active'); });
+      step.classList.add('active');
+      step.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+  }
+});
+</script>
+</body>
+</html>
