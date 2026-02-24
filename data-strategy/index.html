@@ -281,7 +281,7 @@
 </head>
 <body>
   <div id="app-wrap">
-    <!-- TOP BAR -->
+    <!-- TOP BAR (menu removed) -->
     <div class="topbar">
       <div style="display:flex; align-items:center; gap:18px;">
         <div style="display:flex; align-items:center; gap:9px;">
@@ -292,11 +292,6 @@
         </div>
         <span style="color:#444;">/</span>
         <span style="color:#999; font-size:13px; font-family:'Instrument Sans',sans-serif;">Data Strategy Documentation</span>
-      </div>
-      <div style="display:flex; gap:20px;">
-        <span style="color:#666; font-size:12px; font-family:'Instrument Sans',sans-serif; cursor:pointer;">Agent Pipeline</span>
-        <span style="color:#666; font-size:12px; font-family:'Instrument Sans',sans-serif; cursor:pointer;">API Reference</span>
-        <span style="color:#666; font-size:12px; font-family:'Instrument Sans',sans-serif; cursor:pointer;">Release Notes</span>
       </div>
     </div>
 
@@ -665,7 +660,7 @@
           </table>
         </div>
 
-        <!-- AGENT DETAILS (static, as in React) -->
+        <!-- Agent details (same as React) -->
         <!-- Agent 1 -->
         <div style="margin-bottom:16px;">
           <div style="display:flex; gap:16px; align-items:flex-start;">
@@ -1209,7 +1204,6 @@
       <section id="faq">
         <h1 class="h1-main">FAQ</h1>
         <div style="margin-top:20px;">
-          <!-- FAQ items -->
           <div class="faq-item" data-faq-index="0" style="border:1px solid #E4E0D8; border-radius:6px; margin-bottom:8px; overflow:hidden;">
             <div class="faq-q">
               <span style="flex:1;">Why does a Series B company sometimes score lower traction than a Seed company?</span>
@@ -1297,12 +1291,12 @@
         </div>
 
         <div id="glossary-card" class="card" style="padding:0; overflow:hidden;">
-          <!-- Glossary items -->
           <div class="glossary-empty" style="display:none; padding:24px; color:#999; font-family:'Instrument Sans',sans-serif; text-align:center;">
             No terms match "<span id="glossary-query"></span>"
           </div>
 
           <div id="glossary-items">
+            <!-- All GLOSSARY items -->
             <div class="glossary-item" data-term="Reconciliation key" data-def="The shared identifier between registration data and enriched profile. In XVentures: attendee_id.">
               <div style="display:grid; grid-template-columns:230px 1fr; border-bottom:1px solid #E4E0D8;">
                 <div style="padding:11px 16px 11px 20px; font-family:'DM Mono',monospace; font-size:12px; font-weight:500; color:#18182E;">Reconciliation key</div>
@@ -1348,8 +1342,140 @@
               </div>
             </div>
 
-            <!-- (You can continue adding the remaining glossary items the same way as in the React code) -->
-            <!-- For brevity, not all items are reproduced here; repeat pattern for all GLOSSARY entries -->
+            <div class="glossary-item" data-term="match_score" data-def="Weighted sum of six components. Weights are persona-specific from the event playbook. Range 0–1.">
+              <div style="display:grid; grid-template-columns:230px 1fr; border-bottom:1px solid #E4E0D8;">
+                <div style="padding:11px 16px 11px 20px; font-family:'DM Mono',monospace; font-size:12px; font-weight:500; color:#18182E;">match_score</div>
+                <div style="padding:11px 20px 11px 16px; font-size:13px; color:#555; font-family:'Instrument Sans',sans-serif; line-height:1.6; border-left:1px solid #E4E0D8;">
+                  Weighted sum of six components. Weights are persona-specific from the event playbook. Range 0–1.
+                </div>
+              </div>
+            </div>
+
+            <div class="glossary-item" data-term="rank_score" data-def="Directional: match_score × (1 + α × deal_cpty + β × deal_self). A→B ≠ B→A.">
+              <div style="display:grid; grid-template-columns:230px 1fr; border-bottom:1px solid #E4E0D8;">
+                <div style="padding:11px 16px 11px 20px; font-family:'DM Mono',monospace; font-size:12px; font-weight:500; color:#18182E;">rank_score</div>
+                <div style="padding:11px 20px 11px 16px; font-size:13px; color:#555; font-family:'Instrument Sans',sans-serif; line-height:1.6; border-left:1px solid #E4E0D8;">
+                  Directional: match_score × (1 + α × deal_cpty + β × deal_self). A→B ≠ B→A.
+                </div>
+              </div>
+            </div>
+
+            <div class="glossary-item" data-term="Snapshot context" data-def="Profile data frozen at enrichment time. Used for historical analysis, A/B testing of event formats, compliance audit trails.">
+              <div style="display:grid; grid-template-columns:230px 1fr; border-bottom:1px solid #E4E0D8;">
+                <div style="padding:11px 16px 11px 20px; font-family:'DM Mono',monospace; font-size:12px; font-weight:500; color:#18182E;">Snapshot context</div>
+                <div style="padding:11px 20px 11px 16px; font-size:13px; color:#555; font-family:'Instrument Sans',sans-serif; line-height:1.6; border-left:1px solid #E4E0D8;">
+                  Profile data frozen at enrichment time. Used for historical analysis, A/B testing of event formats, compliance audit trails.
+                </div>
+              </div>
+            </div>
+
+            <div class="glossary-item" data-term="Update context" data-def="Profile data updated when the attendee edits their registration. For late-registration corrections and last-minute profile changes.">
+              <div style="display:grid; grid-template-columns:230px 1fr; border-bottom:1px solid #E4E0D8;">
+                <div style="padding:11px 16px 11px 20px; font-family:'DM Mono',monospace; font-size:12px; font-weight:500; color:#18182E;">Update context</div>
+                <div style="padding:11px 20px 11px 16px; font-size:13px; color:#555; font-family:'Instrument Sans',sans-serif; line-height:1.6; border-left:1px solid #E4E0D8;">
+                  Profile data updated when the attendee edits their registration. For late-registration corrections and last-minute profile changes.
+                </div>
+              </div>
+            </div>
+
+            <div class="glossary-item" data-term="P1 bucket" data-def="Priority capital meeting. Requires match_score ≥ 0.70 AND financial_ready ≥ 0.70.">
+              <div style="display:grid; grid-template-columns:230px 1fr; border-bottom:1px solid #E4E0D8;">
+                <div style="padding:11px 16px 11px 20px; font-family:'DM Mono',monospace; font-size:12px; font-weight:500; color:#18182E;">P1 bucket</div>
+                <div style="padding:11px 20px 11px 16px; font-size:13px; color:#555; font-family:'Instrument Sans',sans-serif; line-height:1.6; border-left:1px solid #E4E0D8;">
+                  Priority capital meeting. Requires match_score ≥ 0.70 AND financial_ready ≥ 0.70.
+                </div>
+              </div>
+            </div>
+
+            <div class="glossary-item" data-term="PILOT bucket" data-def="Sandbox or partnership meeting. Requires match_score ≥ 0.70 AND operational_ready ≥ 0.65 AND financial_ready < 0.70.">
+              <div style="display:grid; grid-template-columns:230px 1fr; border-bottom:1px solid #E4E0D8;">
+                <div style="padding:11px 16px 11px 20px; font-family:'DM Mono',monospace; font-size:12px; font-weight:500; color:#18182E;">PILOT bucket</div>
+                <div style="padding:11px 20px 11px 16px; font-size:13px; color:#555; font-family:'Instrument Sans',sans-serif; line-height:1.6; border-left:1px solid #E4E0D8;">
+                  Sandbox or partnership meeting. Requires match_score ≥ 0.70 AND operational_ready ≥ 0.65 AND financial_ready &lt; 0.70.
+                </div>
+              </div>
+            </div>
+
+            <div class="glossary-item" data-term="P2 bucket" data-def="Strategic meeting. Requires match_score ≥ 0.65 AND MAX(financial_ready, operational_ready) ≥ 0.40.">
+              <div style="display:grid; grid-template-columns:230px 1fr; border-bottom:1px solid #E4E0D8;">
+                <div style="padding:11px 16px 11px 20px; font-family:'DM Mono',monospace; font-size:12px; font-weight:500; color:#18182E;">P2 bucket</div>
+                <div style="padding:11px 20px 11px 16px; font-size:13px; color:#555; font-family:'Instrument Sans',sans-serif; line-height:1.6; border-left:1px solid #E4E0D8;">
+                  Strategic meeting. Requires match_score ≥ 0.65 AND MAX(financial_ready, operational_ready) ≥ 0.40.
+                </div>
+              </div>
+            </div>
+
+            <div class="glossary-item" data-term="P3 bucket" data-def="Post-event follow-up. Requires match_score ≥ 0.40.">
+              <div style="display:grid; grid-template-columns:230px 1fr; border-bottom:1px solid #E4E0D8;">
+                <div style="padding:11px 16px 11px 20px; font-family:'DM Mono',monospace; font-size:12px; font-weight:500; color:#18182E;">P3 bucket</div>
+                <div style="padding:11px 20px 11px 16px; font-size:13px; color:#555; font-family:'Instrument Sans',sans-serif; line-height:1.6; border-left:1px solid #E4E0D8;">
+                  Post-event follow-up. Requires match_score ≥ 0.40.
+                </div>
+              </div>
+            </div>
+
+            <div class="glossary-item" data-term="mandate_summary" data-def="One sentence (50–250 chars) naming ≥1 specific signal. Feeds intent_overlap and non_obvious_score via semantic comparison.">
+              <div style="display:grid; grid-template-columns:230px 1fr; border-bottom:1px solid #E4E0D8;">
+                <div style="padding:11px 16px 11px 20px; font-family:'DM Mono',monospace; font-size:12px; font-weight:500; color:#18182E;">mandate_summary</div>
+                <div style="padding:11px 20px 11px 16px; font-size:13px; color:#555; font-family:'Instrument Sans',sans-serif; line-height:1.6; border-left:1px solid #E4E0D8;">
+                  One sentence (50–250 chars) naming ≥1 specific signal. Feeds intent_overlap and non_obvious_score via semantic comparison.
+                </div>
+              </div>
+            </div>
+
+            <div class="glossary-item" data-term="jaccard overlap" data-def="Tag similarity: |A∩B| / |A∪B|. Used for vertical, regulatory, geography, and compliance tags.">
+              <div style="display:grid; grid-template-columns:230px 1fr; border-bottom:1px solid #E4E0D8;">
+                <div style="padding:11px 16px 11px 20px; font-family:'DM Mono',monospace; font-size:12px; font-weight:500; color:#18182E;">jaccard overlap</div>
+                <div style="padding:11px 20px 11px 16px; font-size:13px; color:#555; font-family:'Instrument Sans',sans-serif; line-height:1.6; border-left:1px solid #E4E0D8;">
+                  Tag similarity: |A∩B| / |A∪B|. Used for vertical, regulatory, geography, and compliance tags.
+                </div>
+              </div>
+            </div>
+
+            <div class="glossary-item" data-term="non_obvious_score" data-def="High when mandate semantics align despite low tag overlap (<0.25). Capped at 0.10 when tag_overlap ≥ 0.50 (obvious match).">
+              <div style="display:grid; grid-template-columns:230px 1fr; border-bottom:1px solid #E4E0D8;">
+                <div style="padding:11px 16px 11px 20px; font-family:'DM Mono',monospace; font-size:12px; font-weight:500; color:#18182E;">non_obvious_score</div>
+                <div style="padding:11px 20px 11px 16px; font-size:13px; color:#555; font-family:'Instrument Sans',sans-serif; line-height:1.6; border-left:1px solid #E4E0D8;">
+                  High when mandate semantics align despite low tag overlap (&lt;0.25). Capped at 0.10 when tag_overlap ≥ 0.50 (obvious match).
+                </div>
+              </div>
+            </div>
+
+            <div class="glossary-item" data-term="enrichment_quality" data-def="Confidence score (0–1) for each enriched profile. Triggers needs_review=true when < 0.30.">
+              <div style="display:grid; grid-template-columns:230px 1fr; border-bottom:1px solid #E4E0D8;">
+                <div style="padding:11px 16px 11px 20px; font-family:'DM Mono',monospace; font-size:12px; font-weight:500; color:#18182E;">enrichment_quality</div>
+                <div style="padding:11px 20px 11px 16px; font-size:13px; color:#555; font-family:'Instrument Sans',sans-serif; line-height:1.6; border-left:1px solid #E4E0D8;">
+                  Confidence score (0–1) for each enriched profile. Triggers needs_review=true when &lt; 0.30.
+                </div>
+              </div>
+            </div>
+
+            <div class="glossary-item" data-term="fund_eol_risk" data-def="clamp((years_elapsed - 5) / 5, 0, 1). A 10-year-old fund = 1.0 risk (end of typical lifecycle).">
+              <div style="display:grid; grid-template-columns:230px 1fr; border-bottom:1px solid #E4E0D8;">
+                <div style="padding:11px 16px 11px 20px; font-family:'DM Mono',monospace; font-size:12px; font-weight:500; color:#18182E;">fund_eol_risk</div>
+                <div style="padding:11px 20px 11px 16px; font-size:13px; color:#555; font-family:'Instrument Sans',sans-serif; line-height:1.6; border-left:1px solid #E4E0D8;">
+                  clamp((years_elapsed - 5) / 5, 0, 1). A 10-year-old fund = 1.0 risk (end of typical lifecycle).
+                </div>
+              </div>
+            </div>
+
+            <div class="glossary-item" data-term="gamma" data-def="Persona parameter selecting readiness dimension for rank_score. 'fin'=financial, 'ops'=operational, 'max'=MAX of both.">
+              <div style="display:grid; grid-template-columns:230px 1fr; border-bottom:1px solid #E4E0D8;">
+                <div style="padding:11px 16px 11px 20px; font-family:'DM Mono',monospace; font-size:12px; font-weight:500; color:#18182E;">gamma</div>
+                <div style="padding:11px 20px 11px 16px; font-size:13px; color:#555; font-family:'Instrument Sans',sans-serif; line-height:1.6; border-left:1px solid #E4E0D8;">
+                  Persona parameter selecting readiness dimension for rank_score. 'fin'=financial, 'ops'=operational, 'max'=MAX of both.
+                </div>
+              </div>
+            </div>
+
+            <div class="glossary-item" data-term="alpha / beta" data-def="Playbook weights for counterparty readiness (alpha) and self-readiness (beta). Investor: α=0.60, β=0.05. Regulator: α=0.20, β=0.05.">
+              <div style="display:grid; grid-template-columns:230px 1fr; border-bottom:1px solid #E4E0D8;">
+                <div style="padding:11px 16px 11px 20px; font-family:'DM Mono',monospace; font-size:12px; font-weight:500; color:#18182E;">alpha / beta</div>
+                <div style="padding:11px 20px 11px 16px; font-size:13px; color:#555; font-family:'Instrument Sans',sans-serif; line-height:1.6; border-left:1px solid #E4E0D8;">
+                  Playbook weights for counterparty readiness (alpha) and self-readiness (beta). Investor: α=0.60, β=0.05. Regulator: α=0.20, β=0.05.
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
