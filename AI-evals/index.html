@@ -1,1102 +1,1054 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Code Snippet</title>
-    <style>
-      body {
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-          sans-serif;
-        background: #0a0d14;
-        color: #e8eaef;
-        padding: 24px;
-      }
-      pre {
-        background: #111520;
-        border: 1px solid #1e2535;
-        border-radius: 8px;
-        padding: 16px;
-        overflow-x: auto;
-        line-height: 1.5;
-      }
-      code {
-        font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-          "Courier New", monospace;
-        font-size: 13px;
-      }
-    </style>
-  </head>
-  <body>
-    <pre><code>import { useState, useEffect, useRef } from "react";
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Evals — First Principles</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0A0B0E;
+  --surface:#111318;
+  --surface2:#1A1D24;
+  --border:#22262F;
+  --amber:#F5A623;
+  --amber-dim:#8C5D12;
+  --amber-glow:rgba(245,166,35,0.08);
+  --red:#E85D75;
+  --teal:#2EC4B6;
+  --purple:#9B7FE8;
+  --text:#E8E9EC;
+  --text-muted:#6B7280;
+  --text-dim:#3D4250;
+  --mono:'DM Mono',monospace;
+  --serif:'Instrument Serif',serif;
+  --sans:'DM Sans',sans-serif;
+}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.6;overflow-x:hidden;}
 
-const MODULES = [
-  {
-    id: "foundations",
-    label: "Foundations",
-    icon: "◈",
-    color: "#E8C547",
-    title: "Data Strategy Foundations for PMs",
-    subtitle: "What data strategy actually means at the product level",
-  },
-  {
-    id: "b2b",
-    label: "B2B SaaS",
-    icon: "⬡",
-    color: "#5B8AF5",
-    title: "Data Strategy in B2B SaaS",
-    subtitle: "Enterprise data contracts, multi-tenancy, trust signals",
-  },
-  {
-    id: "api",
-    label: "API-First",
-    icon: "⬢",
-    color: "#4ECDC4",
-    title: "Data Strategy for API-First Products",
-    subtitle: "Developer experience, usage telemetry, platform flywheels",
-  },
-  {
-    id: "b2c",
-    label: "B2C / Marketplace",
-    icon: "◉",
-    color: "#FF6B6B",
-    title: "Data Strategy in B2C & Marketplaces",
-    subtitle: "Personalization, supply-demand balance, liquidity metrics",
-  },
-  {
-    id: "systemdesign",
-    label: "System Design",
-    icon: "▣",
-    color: "#A78BFA",
-    title: "Data System Design for PMs",
-    subtitle: "How to think architecturally without being an engineer",
-  },
-  {
-    id: "launch",
-    label: "Launch Playbook",
-    icon: "◆",
-    color: "#FB923C",
-    title: "End-to-End Product Launch with Data",
-    subtitle: "From hypothesis to instrumentation to post-launch learning",
-  },
-  {
-    id: "quiz",
-    label: "Test Yourself",
-    icon: "◐",
-    color: "#34D399",
-    title: "Synthesis & Self-Assessment",
-    subtitle: "Apply the frameworks across scenarios",
-  },
+/* GRID BACKGROUND */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
+  background-size:48px 48px;
+  opacity:0.35;pointer-events:none;z-index:0;
+}
+
+/* SCANLINE */
+body::after{
+  content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);
+  pointer-events:none;z-index:0;
+}
+
+.wrap{position:relative;z-index:1;max-width:960px;margin:0 auto;padding:0 24px;}
+
+/* NAV */
+nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(10,11,14,0.92);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  padding:12px 0;
+}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;}
+.nav-logo{font-family:var(--mono);font-size:12px;color:var(--amber);letter-spacing:0.1em;text-transform:uppercase;}
+.nav-steps{display:flex;gap:4px;}
+.nav-step{
+  font-family:var(--mono);font-size:10px;letter-spacing:0.05em;text-transform:uppercase;
+  padding:4px 10px;border-radius:3px;cursor:pointer;
+  border:1px solid transparent;color:var(--text-muted);transition:all 0.2s;
+}
+.nav-step:hover,.nav-step.active{border-color:var(--amber);color:var(--amber);background:var(--amber-glow);}
+
+/* HERO */
+.hero{padding:80px 0 60px;}
+.hero-tag{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--mono);font-size:11px;color:var(--amber);letter-spacing:0.12em;text-transform:uppercase;
+  margin-bottom:24px;
+}
+.hero-tag::before{content:'//';opacity:0.5;}
+h1{
+  font-family:var(--serif);font-size:clamp(42px,6vw,72px);font-weight:400;
+  line-height:1.05;letter-spacing:-0.02em;margin-bottom:16px;
+}
+h1 em{color:var(--amber);font-style:italic;}
+.hero-sub{
+  font-size:16px;color:var(--text-muted);max-width:560px;line-height:1.7;
+  margin-bottom:40px;
+}
+.hero-source{
+  display:inline-flex;align-items:center;gap:10px;
+  background:var(--surface);border:1px solid var(--border);border-radius:6px;
+  padding:10px 16px;font-family:var(--mono);font-size:11px;color:var(--text-muted);
+}
+.hero-source span{color:var(--amber);}
+
+/* PROGRESS BAR */
+.progress-bar{
+  height:2px;background:var(--border);border-radius:1px;margin:40px 0;
+  position:relative;overflow:visible;
+}
+.progress-fill{
+  height:100%;background:var(--amber);border-radius:1px;width:0%;
+  transition:width 0.8s cubic-bezier(0.4,0,0.2,1);
+}
+.progress-label{
+  position:absolute;right:0;top:-20px;
+  font-family:var(--mono);font-size:10px;color:var(--amber);
+}
+
+/* SECTION */
+section{padding:64px 0;border-top:1px solid var(--border);}
+.sec-number{
+  font-family:var(--mono);font-size:11px;color:var(--amber);
+  letter-spacing:0.1em;margin-bottom:12px;opacity:0.7;
+}
+h2{
+  font-family:var(--serif);font-size:clamp(28px,4vw,42px);font-weight:400;
+  letter-spacing:-0.02em;margin-bottom:8px;
+}
+.sec-sub{font-size:14px;color:var(--text-muted);margin-bottom:40px;max-width:600px;}
+
+/* FIRST PRINCIPLES CARDS */
+.fp-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+.fp-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  padding:24px;cursor:pointer;transition:all 0.25s;position:relative;overflow:hidden;
+}
+.fp-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:var(--amber);transform:scaleX(0);transform-origin:left;transition:transform 0.3s;
+}
+.fp-card:hover,.fp-card.open{border-color:var(--amber);background:var(--amber-glow);}
+.fp-card:hover::before,.fp-card.open::before{transform:scaleX(1);}
+.fp-q{
+  font-family:var(--mono);font-size:11px;color:var(--amber);
+  letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px;
+}
+.fp-title{font-family:var(--serif);font-size:20px;margin-bottom:8px;}
+.fp-body{font-size:13px;color:var(--text-muted);line-height:1.65;
+  max-height:0;overflow:hidden;transition:max-height 0.4s ease,margin-top 0.3s;}
+.fp-card.open .fp-body{max-height:200px;margin-top:12px;}
+.fp-toggle{
+  position:absolute;top:20px;right:20px;
+  font-family:var(--mono);font-size:16px;color:var(--text-dim);transition:all 0.3s;
+}
+.fp-card.open .fp-toggle{color:var(--amber);transform:rotate(45deg);}
+
+/* RISK TABLE */
+.risk-table{width:100%;border-collapse:collapse;margin:24px 0;}
+.risk-table th{
+  font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;
+  color:var(--text-muted);padding:8px 16px;text-align:left;
+  border-bottom:1px solid var(--border);
+}
+.risk-table td{
+  padding:12px 16px;border-bottom:1px solid var(--border);font-size:13px;
+  vertical-align:top;
+}
+.risk-table tr:last-child td{border-bottom:none;}
+.risk-table tr:hover td{background:var(--surface2);}
+.tag{
+  display:inline-block;font-family:var(--mono);font-size:10px;
+  padding:2px 8px;border-radius:3px;letter-spacing:0.05em;font-weight:500;
+}
+.tag-p0{background:rgba(232,93,117,0.15);color:var(--red);border:1px solid rgba(232,93,117,0.3);}
+.tag-p1{background:rgba(245,166,35,0.12);color:var(--amber);border:1px solid rgba(245,166,35,0.25);}
+.tag-p2{background:rgba(46,196,182,0.1);color:var(--teal);border:1px solid rgba(46,196,182,0.2);}
+
+/* PYRAMID */
+.pyramid-wrap{position:relative;margin:32px 0;}
+.pyramid-row{
+  display:flex;align-items:center;margin-bottom:8px;cursor:pointer;
+}
+.pyramid-bar{
+  height:52px;display:flex;align-items:center;justify-content:center;
+  border-radius:4px;font-size:13px;font-weight:500;transition:all 0.2s;
+  position:relative;flex-shrink:0;
+}
+.pyramid-bar:hover{filter:brightness(1.15);}
+.pyramid-info{
+  margin-left:16px;flex:1;
+  font-size:12px;color:var(--text-muted);line-height:1.5;
+  max-width:0;overflow:hidden;white-space:nowrap;transition:max-width 0.4s,opacity 0.3s;opacity:0;
+}
+.pyramid-row:hover .pyramid-info,.pyramid-row.selected .pyramid-info{max-width:400px;opacity:1;white-space:normal;}
+.p-row-1 .pyramid-bar{width:100%;background:rgba(232,93,117,0.2);border:1px solid rgba(232,93,117,0.4);color:var(--red);}
+.p-row-2 .pyramid-bar{width:84%;background:rgba(245,166,35,0.15);border:1px solid rgba(245,166,35,0.3);color:var(--amber);}
+.p-row-3 .pyramid-bar{width:68%;background:rgba(155,127,232,0.15);border:1px solid rgba(155,127,232,0.3);color:var(--purple);}
+.p-row-4 .pyramid-bar{width:52%;background:rgba(46,196,182,0.12);border:1px solid rgba(46,196,182,0.25);color:var(--teal);}
+
+/* METRICS BUILDER */
+.metric-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:24px 0;}
+.metric-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  padding:20px;transition:all 0.2s;position:relative;
+}
+.metric-name{font-family:var(--mono);font-size:11px;color:var(--text-muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;}
+.metric-val{font-family:var(--mono);font-size:28px;color:var(--text);margin-bottom:4px;}
+.metric-threshold{font-size:11px;color:var(--text-muted);}
+.metric-status{
+  position:absolute;top:16px;right:16px;
+  width:8px;height:8px;border-radius:50%;
+}
+.status-ok{background:var(--teal);box-shadow:0 0 8px var(--teal);}
+.status-warn{background:var(--amber);box-shadow:0 0 8px var(--amber);animation:pulse 2s infinite;}
+.status-crit{background:var(--red);box-shadow:0 0 8px var(--red);animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+
+/* SLIDER */
+.slider-row{display:flex;align-items:center;gap:16px;margin:12px 0;}
+.slider-label{font-family:var(--mono);font-size:11px;color:var(--text-muted);width:160px;flex-shrink:0;}
+input[type=range]{
+  flex:1;-webkit-appearance:none;height:3px;
+  background:var(--border);border-radius:2px;outline:none;cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:16px;height:16px;border-radius:50%;
+  background:var(--amber);border:2px solid var(--bg);cursor:pointer;
+  box-shadow:0 0 8px rgba(245,166,35,0.5);
+}
+.slider-val{font-family:var(--mono);font-size:13px;color:var(--amber);width:48px;text-align:right;}
+
+/* EVAL TYPES */
+.eval-tabs{display:flex;gap:0;border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:24px;width:fit-content;}
+.eval-tab{
+  padding:10px 24px;font-family:var(--mono);font-size:11px;letter-spacing:0.08em;
+  text-transform:uppercase;cursor:pointer;color:var(--text-muted);
+  background:transparent;border:none;transition:all 0.2s;
+}
+.eval-tab:not(:last-child){border-right:1px solid var(--border);}
+.eval-tab.active{background:var(--amber);color:#0A0B0E;font-weight:500;}
+.eval-tab:hover:not(.active){background:var(--surface2);color:var(--text);}
+.eval-panel{display:none;}
+.eval-panel.active{display:block;}
+.code-block{
+  background:var(--surface);border:1px solid var(--border);border-radius:6px;
+  padding:20px 24px;font-family:var(--mono);font-size:12px;line-height:1.8;
+  color:#A8B0BF;margin:16px 0;overflow-x:auto;
+}
+.code-block .kw{color:var(--purple);}
+.code-block .str{color:var(--teal);}
+.code-block .cm{color:var(--text-dim);font-style:italic;}
+.code-block .num{color:var(--amber);}
+.code-block .fn{color:var(--red);}
+
+/* FLYWHEEL */
+.flywheel-wrap{position:relative;height:420px;margin:32px 0;}
+.flywheel-center{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:120px;height:120px;border-radius:50%;
+  background:var(--surface2);border:2px solid var(--amber);
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  font-family:var(--mono);font-size:10px;color:var(--amber);letter-spacing:0.06em;text-transform:uppercase;line-height:1.4;
+  z-index:5;
+}
+.flywheel-node{
+  position:absolute;width:100px;height:72px;
+  background:var(--surface);border:1px solid var(--border);border-radius:6px;
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  font-size:11px;color:var(--text-muted);padding:8px;line-height:1.4;
+  cursor:pointer;transition:all 0.25s;z-index:4;
+}
+.flywheel-node:hover{border-color:var(--amber);color:var(--text);background:var(--amber-glow);}
+.flywheel-node .node-num{font-family:var(--mono);font-size:10px;color:var(--amber);display:block;margin-bottom:4px;}
+/* positions */
+.fn-1{top:10px;left:50%;transform:translateX(-50%);}
+.fn-2{top:20%;right:8%;}
+.fn-3{bottom:20%;right:8%;}
+.fn-4{bottom:10px;left:50%;transform:translateX(-50%);}
+.fn-5{bottom:20%;left:8%;}
+.fn-6{top:20%;left:8%;}
+/* arrows using SVG overlay */
+.flywheel-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+
+/* DATASET VIZ */
+.dataset-bars{display:flex;flex-direction:column;gap:10px;margin:24px 0;}
+.ds-row{display:flex;align-items:center;gap:12px;}
+.ds-label{font-family:var(--mono);font-size:11px;color:var(--text-muted);width:200px;flex-shrink:0;}
+.ds-bar-wrap{flex:1;background:var(--border);border-radius:3px;height:28px;overflow:hidden;position:relative;}
+.ds-bar{
+  height:100%;display:flex;align-items:center;padding:0 12px;
+  font-family:var(--mono);font-size:11px;color:var(--bg);font-weight:500;
+  transition:width 1.2s cubic-bezier(0.4,0,0.2,1);width:0%;border-radius:3px;
+}
+.ds-count{font-family:var(--mono);font-size:11px;color:var(--text-muted);width:60px;text-align:right;}
+.ds-tag{width:32px;text-align:center;}
+
+/* CHECKLIST */
+.checklist{display:flex;flex-direction:column;gap:10px;margin:24px 0;}
+.check-item{
+  display:flex;align-items:flex-start;gap:14px;
+  background:var(--surface);border:1px solid var(--border);border-radius:6px;
+  padding:16px;cursor:pointer;transition:all 0.2s;
+}
+.check-item:hover{border-color:var(--text-dim);}
+.check-item.done{border-color:var(--teal);background:rgba(46,196,182,0.05);}
+.check-box{
+  width:20px;height:20px;border-radius:4px;border:1.5px solid var(--border);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  margin-top:1px;transition:all 0.2s;font-size:11px;
+}
+.check-item.done .check-box{border-color:var(--teal);background:var(--teal);color:var(--bg);}
+.check-title{font-size:13px;font-weight:500;margin-bottom:2px;}
+.check-desc{font-size:12px;color:var(--text-muted);}
+
+/* GATE VIZ */
+.gate-flow{display:flex;align-items:center;gap:0;margin:24px 0;overflow-x:auto;padding-bottom:8px;}
+.gate-node{
+  display:flex;flex-direction:column;align-items:center;gap:8px;flex-shrink:0;
+}
+.gate-box{
+  background:var(--surface);border:1px solid var(--border);border-radius:6px;
+  padding:14px 18px;text-align:center;min-width:110px;
+}
+.gate-box.blocker{border-color:var(--red);}
+.gate-box.monitor{border-color:var(--amber);}
+.gate-box.pass{border-color:var(--teal);}
+.gate-label{font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;}
+.gate-label.red{color:var(--red);}
+.gate-label.amber{color:var(--amber);}
+.gate-label.green{color:var(--teal);}
+.gate-thresh{font-size:11px;color:var(--text-muted);}
+.gate-arrow{
+  padding:0 8px;color:var(--text-dim);font-size:20px;flex-shrink:0;
+  font-family:var(--mono);
+}
+
+/* QUOTE */
+.callout{
+  border-left:2px solid var(--amber);padding:20px 24px;
+  background:var(--amber-glow);border-radius:0 6px 6px 0;margin:24px 0;
+}
+.callout-label{font-family:var(--mono);font-size:10px;color:var(--amber);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;}
+.callout p{font-size:14px;color:var(--text-muted);line-height:1.7;}
+.callout strong{color:var(--text);}
+
+/* FOOTER */
+footer{
+  padding:48px 0;border-top:1px solid var(--border);
+  text-align:center;font-family:var(--mono);font-size:11px;color:var(--text-dim);
+}
+
+/* RESPONSIVE */
+@media(max-width:640px){
+  .fp-grid{grid-template-columns:1fr;}
+  .metric-grid{grid-template-columns:1fr 1fr;}
+  .nav-steps{display:none;}
+  .flywheel-wrap{height:320px;}
+  .flywheel-node{width:80px;height:60px;font-size:10px;}
+}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+.animate{opacity:0;animation:fadeUp 0.5s ease forwards;}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-inner">
+    <div class="nav-logo">AI Evals // Field Guide</div>
+    <div class="nav-steps">
+      <div class="nav-step active" onclick="scrollTo(0)">Principles</div>
+      <div class="nav-step" onclick="document.getElementById('s2').scrollIntoView({behavior:'smooth'})">Risk Map</div>
+      <div class="nav-step" onclick="document.getElementById('s3').scrollIntoView({behavior:'smooth'})">Metrics</div>
+      <div class="nav-step" onclick="document.getElementById('s4').scrollIntoView({behavior:'smooth'})">Dataset</div>
+      <div class="nav-step" onclick="document.getElementById('s5').scrollIntoView({behavior:'smooth'})">Eval Types</div>
+      <div class="nav-step" onclick="document.getElementById('s6').scrollIntoView({behavior:'smooth'})">Flywheel</div>
+      <div class="nav-step" onclick="document.getElementById('s7').scrollIntoView({behavior:'smooth'})">Build Yours</div>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+
+<!-- HERO -->
+<div class="hero animate">
+  <div class="hero-tag">First Principles Guide</div>
+  <h1>How to design<br><em>AI Evals</em><br>that actually work</h1>
+  <p class="hero-sub">Most teams build evals after something breaks. This guide teaches you how to derive an eval framework from first principles — before you write a single prompt.</p>
+  <div class="hero-source">
+    Case study: <span>INDmoney Mind</span> — AI Stock Research Assistant (India)
+  </div>
+</div>
+
+<div class="progress-bar">
+  <div class="progress-fill" id="progress"></div>
+  <div class="progress-label" id="progress-label">0% complete</div>
+</div>
+
+<!-- S1: FIRST PRINCIPLES -->
+<section id="s1">
+  <div class="sec-number">01 — WHY</div>
+  <h2>Start from the question:<br>What breaks if this is wrong?</h2>
+  <p class="sec-sub">Before choosing metrics, map the failure modes. Every domain has different stakes. Your eval framework must reflect them.</p>
+
+  <div class="fp-grid">
+    <div class="fp-card" onclick="toggleFP(this)">
+      <div class="fp-q">Principle 01</div>
+      <div class="fp-title">Evals = stakes × scale</div>
+      <div class="fp-toggle">+</div>
+      <div class="fp-body">The higher the stakes and the larger the scale, the more rigorous your evals must be. A stock research AI that reaches 10M users and influences financial decisions demands near-zero tolerance for compliance failures — far tighter than a recipe recommender. <strong>First ask: what's the cost of a single bad output?</strong></div>
+    </div>
+    <div class="fp-card" onclick="toggleFP(this)">
+      <div class="fp-q">Principle 02</div>
+      <div class="fp-title">You can't measure what you haven't defined</div>
+      <div class="fp-toggle">+</div>
+      <div class="fp-body">Most teams write prompts, ship, then complain about quality. The right order: <strong>define "good" before you build</strong>. For INDmoney, "good" meant: factually accurate, compliant with SEBI, balanced, and mobile-readable. Each of these can be measured separately.</div>
+    </div>
+    <div class="fp-card" onclick="toggleFP(this)">
+      <div class="fp-q">Principle 03</div>
+      <div class="fp-title">Evals are a product, not a script</div>
+      <div class="fp-toggle">+</div>
+      <div class="fp-body">A single eval script is a snapshot. A living eval system is infrastructure. <strong>Your test dataset needs governance</strong>: weekly additions from production failures, monthly data refreshes, and pre-release human review. Build for maintenance from day one.</div>
+    </div>
+    <div class="fp-card" onclick="toggleFP(this)">
+      <div class="fp-q">Principle 04</div>
+      <div class="fp-title">Different signals need different detectors</div>
+      <div class="fp-toggle">+</div>
+      <div class="fp-body">No single evaluation method catches everything. Rule-based checks are cheap and deterministic (great for compliance). LLM-as-judge is flexible but noisy (great for tone and balance). Human eval is expensive but ground truth. <strong>Use all three in a layered stack.</strong></div>
+    </div>
+    <div class="fp-card" onclick="toggleFP(this)">
+      <div class="fp-q">Principle 05</div>
+      <div class="fp-title">Offline ≠ online performance</div>
+      <div class="fp-toggle">+</div>
+      <div class="fp-body">Passing a pre-deploy test suite doesn't mean you're safe in production. Real users ask things your test set never imagined. You need both gates: <strong>offline evals to block regressions</strong> and <strong>online evals to catch emergence</strong> — novel failure modes that only appear at production scale.</div>
+    </div>
+    <div class="fp-card" onclick="toggleFP(this)">
+      <div class="fp-q">Principle 06</div>
+      <div class="fp-title">The flywheel: production feeds the test set</div>
+      <div class="fp-toggle">+</div>
+      <div class="fp-body">Your best test cases come from real failures. Every low-rated response, every compliance violation, every edge case from production is a <strong>gift to your eval dataset</strong>. The teams that improve fastest are the ones who close this loop systematically — not quarterly, but weekly.</div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-label">INDmoney rationale</div>
+    <p>"One viral screenshot of bad AI advice could damage brand reputation." — The team understood that in fintech, <strong>trust is the product</strong>. The eval framework wasn't bureaucracy — it was brand protection at scale.</p>
+  </div>
+</section>
+
+<!-- S2: RISK MAP -->
+<section id="s2">
+  <div class="sec-number">02 — WHAT CAN GO WRONG</div>
+  <h2>Map your failure modes<br>before choosing metrics</h2>
+  <p class="sec-sub">Hover each layer to understand what breaks and why it matters. Severity flows from regulatory risk down to experience degradation.</p>
+
+  <div class="pyramid-wrap">
+    <div class="pyramid-row p-row-1" onclick="selectRow(this)">
+      <div class="pyramid-bar">⚖️ Compliance Failures</div>
+      <div class="pyramid-info"><strong>Regulatory / Legal risk.</strong> In INDmoney's case: crossing from "analysis" to "recommendation" violates SEBI rules for unlicensed advice. Zero tolerance — one failure triggers immediate rollback.</div>
+    </div>
+    <div class="pyramid-row p-row-2" onclick="selectRow(this)">
+      <div class="pyramid-bar">🎯 Factual Errors</div>
+      <div class="pyramid-info"><strong>Trust destruction.</strong> A hallucinated P/E ratio or wrong earnings number can cause a real financial loss. Users will never trust the product again. Target: ≥98% accuracy, with &lt;95% being a P0 incident.</div>
+    </div>
+    <div class="pyramid-row p-row-3" onclick="selectRow(this)">
+      <div class="pyramid-bar">🔍 Groundedness / Hallucination</div>
+      <div class="pyramid-info"><strong>Credibility erosion.</strong> Claims not supported by retrieved context — the model "invents" insights. Measurable with NLI models. Target: &lt;2% hallucination rate. Above 5% is a P0 issue.</div>
+    </div>
+    <div class="pyramid-row p-row-4" onclick="selectRow(this)">
+      <div class="pyramid-bar">📱 Quality / UX Failures</div>
+      <div class="pyramid-info"><strong>Experience degradation.</strong> Irrelevant, unbalanced, slow, or poorly structured responses. Users stop using the feature. Measured via thumbs-up rates, session abandonment, and LLM-as-judge scores.</div>
+    </div>
+  </div>
+
+  <table class="risk-table">
+    <thead>
+      <tr>
+        <th>Failure Mode</th>
+        <th>Detection Method</th>
+        <th>Threshold</th>
+        <th>Priority</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Gives buy/sell advice</td>
+        <td>Regex + keyword scan</td>
+        <td>100% block</td>
+        <td><span class="tag tag-p0">P0</span></td>
+        <td>Immediate rollback + alert</td>
+      </tr>
+      <tr>
+        <td>Wrong numerical facts</td>
+        <td>NER extraction + source compare</td>
+        <td>≥98% accuracy</td>
+        <td><span class="tag tag-p0">P0</span></td>
+        <td>Block if &lt;95%</td>
+      </tr>
+      <tr>
+        <td>Hallucinated claims</td>
+        <td>NLI model grounding check</td>
+        <td>&lt;2% rate</td>
+        <td><span class="tag tag-p0">P0</span></td>
+        <td>Block if &gt;5%</td>
+      </tr>
+      <tr>
+        <td>Irrelevant response</td>
+        <td>LLM-as-judge relevance (1-5)</td>
+        <td>≥4.0/5 avg</td>
+        <td><span class="tag tag-p1">P1</span></td>
+        <td>Investigate prompt</td>
+      </tr>
+      <tr>
+        <td>One-sided analysis</td>
+        <td>LLM-as-judge balance (1-5)</td>
+        <td>≥3.5/5 avg</td>
+        <td><span class="tag tag-p1">P1</span></td>
+        <td>Prompt tuning</td>
+      </tr>
+      <tr>
+        <td>Slow responses</td>
+        <td>APM latency monitoring</td>
+        <td>P95 &lt;5s</td>
+        <td><span class="tag tag-p2">P2</span></td>
+        <td>Optimize RAG pipeline</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- S3: METRICS BUILDER -->
+<section id="s3">
+  <div class="sec-number">03 — DECIDE YOUR METRICS</div>
+  <h2>Metrics simulator</h2>
+  <p class="sec-sub">Adjust the sliders to see how metric changes affect system status. This mirrors what your eval dashboard should look like in production.</p>
+
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:28px;margin-bottom:24px;">
+    <div class="slider-row">
+      <div class="slider-label">Numerical Accuracy</div>
+      <input type="range" min="85" max="100" value="98" id="sl-accuracy" oninput="updateMetrics()">
+      <div class="slider-val" id="sv-accuracy">98%</div>
+    </div>
+    <div class="slider-row">
+      <div class="slider-label">Compliance Pass Rate</div>
+      <input type="range" min="95" max="100" step="0.1" value="100" id="sl-compliance" oninput="updateMetrics()">
+      <div class="slider-val" id="sv-compliance">100%</div>
+    </div>
+    <div class="slider-row">
+      <div class="slider-label">Hallucination Rate</div>
+      <input type="range" min="0" max="10" step="0.1" value="1.2" id="sl-halluc" oninput="updateMetrics()">
+      <div class="slider-val" id="sv-halluc">1.2%</div>
+    </div>
+    <div class="slider-row">
+      <div class="slider-label">P95 Latency (s)</div>
+      <input type="range" min="0.5" max="8" step="0.1" value="2.1" id="sl-latency" oninput="updateMetrics()">
+      <div class="slider-val" id="sv-latency">2.1s</div>
+    </div>
+    <div class="slider-row">
+      <div class="slider-label">User Satisfaction</div>
+      <input type="range" min="50" max="100" value="83" id="sl-sat" oninput="updateMetrics()">
+      <div class="slider-val" id="sv-sat">83%</div>
+    </div>
+  </div>
+
+  <div class="metric-grid">
+    <div class="metric-card" id="mc-accuracy">
+      <div class="metric-status status-ok" id="ms-accuracy"></div>
+      <div class="metric-name">Num. Accuracy</div>
+      <div class="metric-val" id="mv-accuracy">98%</div>
+      <div class="metric-threshold">Target ≥98% · Block &lt;95%</div>
+    </div>
+    <div class="metric-card" id="mc-compliance">
+      <div class="metric-status status-ok" id="ms-compliance"></div>
+      <div class="metric-name">Compliance</div>
+      <div class="metric-val" id="mv-compliance">100%</div>
+      <div class="metric-threshold">Target 100% · Alert &lt;99.5%</div>
+    </div>
+    <div class="metric-card" id="mc-halluc">
+      <div class="metric-status status-ok" id="ms-halluc"></div>
+      <div class="metric-name">Hallucination</div>
+      <div class="metric-val" id="mv-halluc">1.2%</div>
+      <div class="metric-threshold">Target &lt;2% · Block &gt;5%</div>
+    </div>
+    <div class="metric-card" id="mc-latency">
+      <div class="metric-status status-ok" id="ms-latency"></div>
+      <div class="metric-name">P95 Latency</div>
+      <div class="metric-val" id="mv-latency">2.1s</div>
+      <div class="metric-threshold">Target &lt;5s · Optimize &gt;3s</div>
+    </div>
+    <div class="metric-card" id="mc-sat">
+      <div class="metric-status status-ok" id="ms-sat"></div>
+      <div class="metric-name">User Satisfaction</div>
+      <div class="metric-val" id="mv-sat">83%</div>
+      <div class="metric-threshold">Target ≥80% · Investigate &lt;70%</div>
+    </div>
+    <div class="metric-card" style="display:flex;align-items:center;justify-content:center;">
+      <div id="deploy-gate" style="text-align:center;">
+        <div style="font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal);margin-bottom:8px;">Deploy Gate</div>
+        <div style="font-size:24px;" id="deploy-icon">✓</div>
+        <div style="font-family:var(--mono);font-size:12px;color:var(--teal);margin-top:6px;" id="deploy-text">CLEARED</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S4: DATASET -->
+<section id="s4">
+  <div class="sec-number">04 — BUILD YOUR DATASET</div>
+  <h2>Test dataset composition<br>matters as much as the tests</h2>
+  <p class="sec-sub">INDmoney targets 500+ test cases. The distribution isn't random — it reflects risk priority. P0 categories get the most coverage. Click the bars to explore.</p>
+
+  <div class="dataset-bars" id="dataset-bars">
+    <!-- filled by JS -->
+  </div>
+
+  <div class="callout" style="margin-top:32px;">
+    <div class="callout-label">How to collect test cases</div>
+    <p>
+      <strong>Production mining</strong> — sample real user queries from logs (anonymized), prioritize low-rated ones.<br><br>
+      <strong>Expert curation</strong> — work with domain experts to build "gold standard" cases covering known tricky scenarios.<br><br>
+      <strong>Synthetic generation</strong> — use an LLM to generate variations and adversarial prompts. Red-team your own system.
+    </p>
+  </div>
+</section>
+
+<!-- S5: EVAL TYPES -->
+<section id="s5">
+  <div class="sec-number">05 — EVAL ARCHITECTURE</div>
+  <h2>Three types of evaluators,<br>used in layers</h2>
+  <p class="sec-sub">Each method has a different cost, speed, and confidence profile. You need all three working together.</p>
+
+  <div class="eval-tabs">
+    <button class="eval-tab active" onclick="switchTab('auto')">Automated / Rules</button>
+    <button class="eval-tab" onclick="switchTab('llm')">LLM-as-Judge</button>
+    <button class="eval-tab" onclick="switchTab('human')">Human Eval</button>
+  </div>
+
+  <div class="eval-panel active" id="tab-auto">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px;">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--teal);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">When to use</div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.7;">Deterministic, binary checks. Things that are either correct or not. Runs on every single response at near-zero cost.</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px;">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--red);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">Limitation</div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.7;">Cannot assess nuance, tone, or correctness of reasoning. A response can pass all rules and still be unhelpful.</div>
+      </div>
+    </div>
+    <div class="code-block">
+<span class="cm"># Compliance checker — scans for prohibited patterns</span>
+<span class="kw">def</span> <span class="fn">check_compliance</span>(response: str) → dict:
+    prohibited = [
+        <span class="str">"you should buy"</span>, <span class="str">"I recommend"</span>, 
+        <span class="str">"guaranteed"</span>, <span class="str">"sure shot"</span>,
+        <span class="str">"definitely buy"</span>, <span class="str">"will go up"</span>
+    ]
+    violations = [p <span class="kw">for</span> p <span class="kw">in</span> prohibited <span class="kw">if</span> p.lower() <span class="kw">in</span> response.lower()]
+    <span class="kw">return</span> {
+        <span class="str">"passed"</span>: len(violations) == <span class="num">0</span>,
+        <span class="str">"violations"</span>: violations,
+        <span class="str">"action"</span>: <span class="str">"BLOCK"</span> <span class="kw">if</span> violations <span class="kw">else</span> <span class="str">"PASS"</span>
+    }
+
+<span class="cm"># Factual accuracy — compare extracted numbers to source data</span>
+<span class="kw">def</span> <span class="fn">check_numerical_accuracy</span>(response: str, source_data: dict) → float:
+    extracted = <span class="fn">extract_numbers_with_context</span>(response)  <span class="cm"># NER+regex</span>
+    correct = <span class="num">0</span>
+    <span class="kw">for</span> claim <span class="kw">in</span> extracted:
+        expected = source_data.get(claim[<span class="str">'field'</span>])
+        <span class="kw">if</span> expected <span class="kw">and</span> <span class="fn">values_match</span>(claim[<span class="str">'value'</span>], expected):
+            correct += <span class="num">1</span>
+    <span class="kw">return</span> correct / len(extracted) <span class="kw">if</span> extracted <span class="kw">else</span> <span class="num">1.0</span>
+    </div>
+  </div>
+
+  <div class="eval-panel" id="tab-llm">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px;">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--teal);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">When to use</div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.7;">Subjective quality signals: relevance, tone, balance. Cheaper than human eval. Run on 1-5% sampled production traffic and on your full offline test set.</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px;">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--red);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">Limitation</div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.7;">Biased by judge model's own preferences. Calibrate regularly against human ratings. Don't use for factual accuracy — use rules for that.</div>
+      </div>
+    </div>
+    <div class="code-block">
+<span class="cm"># LLM-as-judge for relevance and balance</span>
+JUDGE_PROMPT = <span class="str">"""
+You are evaluating a stock analysis AI response.
+Rate the following on a 1-5 scale:
+
+RELEVANCE: Does the response directly address what the user asked?
+BALANCE: Does it present both bullish and bearish perspectives?
+TONE: Is it professional, clear, and appropriately confident?
+
+User question: {question}
+AI response: {response}
+
+Return JSON only:
+{"relevance": N, "balance": N, "tone": N, "reasoning": "..."}
+"""</span>
+
+<span class="kw">def</span> <span class="fn">llm_judge</span>(question: str, response: str) → dict:
+    result = <span class="fn">call_gpt4</span>(JUDGE_PROMPT.<span class="fn">format</span>(
+        question=question, response=response
+    ))
+    scores = json.<span class="fn">loads</span>(result)
+    <span class="kw">return</span> {
+        <span class="str">"passed"</span>: scores[<span class="str">"relevance"</span>] >= <span class="num">4.0</span> <span class="kw">and</span> scores[<span class="str">"balance"</span>] >= <span class="num">3.5</span>,
+        **scores
+    }
+    </div>
+  </div>
+
+  <div class="eval-panel" id="tab-human">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px;">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--teal);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">When to use</div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.7;">New feature launches, quarterly audits, calibrating the LLM judge, and any time automated metrics decline unexpectedly. This is ground truth — expensive but irreplaceable.</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px;">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--red);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">Limitation</div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.7;">Slow, expensive, and can't run at scale. Reserve for cases where automated systems disagree or when you're setting calibration baselines.</div>
+      </div>
+    </div>
+    <table class="risk-table">
+      <thead><tr><th>Dimension</th><th>Question to rater</th><th>Scale</th><th>Hard fail?</th></tr></thead>
+      <tbody>
+        <tr><td>Accuracy</td><td>Is the information factually correct?</td><td>1–5</td><td>No</td></tr>
+        <tr><td>Helpfulness</td><td>Would this help a user make an informed decision?</td><td>1–5</td><td>No</td></tr>
+        <tr><td>Trust</td><td>Would you trust this if you were investing?</td><td>1–5</td><td>No</td></tr>
+        <tr><td>Compliance</td><td>Does it avoid giving direct investment advice?</td><td>Pass/Fail</td><td><strong>Yes</strong></td></tr>
+        <tr><td>Shareable?</td><td>Would you share this response with a friend?</td><td>Yes/No</td><td>No</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Deploy gates -->
+  <div style="margin-top:40px;">
+    <div class="sec-number" style="margin-bottom:16px;">Deployment gates</div>
+    <div class="gate-flow">
+      <div class="gate-node">
+        <div class="gate-box">
+          <div style="font-size:20px;margin-bottom:6px;">💻</div>
+          <div class="gate-thresh">Code change<br>or prompt edit</div>
+        </div>
+      </div>
+      <div class="gate-arrow">→</div>
+      <div class="gate-node">
+        <div class="gate-box blocker">
+          <div class="gate-label red">Smoke Test</div>
+          <div class="gate-thresh">50 cases<br>BLOCKS deploy</div>
+        </div>
+      </div>
+      <div class="gate-arrow">→</div>
+      <div class="gate-node">
+        <div class="gate-box blocker">
+          <div class="gate-label red">Compliance Gate</div>
+          <div class="gate-thresh">≥99.5% pass<br>BLOCKS deploy</div>
+        </div>
+      </div>
+      <div class="gate-arrow">→</div>
+      <div class="gate-node">
+        <div class="gate-box blocker">
+          <div class="gate-label red">Accuracy Gate</div>
+          <div class="gate-thresh">≥95% accuracy<br>BLOCKS deploy</div>
+        </div>
+      </div>
+      <div class="gate-arrow">→</div>
+      <div class="gate-node">
+        <div class="gate-box pass">
+          <div class="gate-label green">Staged Rollout</div>
+          <div class="gate-thresh">10% allocation<br>Monitor 24h</div>
+        </div>
+      </div>
+      <div class="gate-arrow">→</div>
+      <div class="gate-node">
+        <div class="gate-box" style="border-color:var(--purple);">
+          <div class="gate-label" style="color:var(--purple);">Full Deploy</div>
+          <div class="gate-thresh">Nightly regression<br>continues</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S6: FLYWHEEL -->
+<section id="s6">
+  <div class="sec-number">06 — CONTINUOUS IMPROVEMENT</div>
+  <h2>The eval flywheel:<br>production feeds itself</h2>
+  <p class="sec-sub">The teams that improve fastest close the loop between production failures and the eval dataset. Hover each node to understand the cycle.</p>
+
+  <div class="flywheel-wrap">
+    <svg class="flywheel-svg" viewBox="0 0 960 420">
+      <defs>
+        <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="rgba(245,166,35,0.4)"/>
+        </marker>
+      </defs>
+      <!-- curved arrows between nodes -->
+      <path d="M480,85 Q720,90 820,130" stroke="rgba(245,166,35,0.25)" stroke-width="1.5" fill="none" marker-end="url(#arr)" stroke-dasharray="4,4"/>
+      <path d="M855,190 Q880,280 820,310" stroke="rgba(245,166,35,0.25)" stroke-width="1.5" fill="none" marker-end="url(#arr)" stroke-dasharray="4,4"/>
+      <path d="M780,360 Q620,390 480,370" stroke="rgba(245,166,35,0.25)" stroke-width="1.5" fill="none" marker-end="url(#arr)" stroke-dasharray="4,4"/>
+      <path d="M420,370 Q200,380 145,330" stroke="rgba(245,166,35,0.25)" stroke-width="1.5" fill="none" marker-end="url(#arr)" stroke-dasharray="4,4"/>
+      <path d="M110,280 Q95,200 145,150" stroke="rgba(245,166,35,0.25)" stroke-width="1.5" fill="none" marker-end="url(#arr)" stroke-dasharray="4,4"/>
+      <path d="M210,100 Q340,70 430,85" stroke="rgba(245,166,35,0.25)" stroke-width="1.5" fill="none" marker-end="url(#arr)" stroke-dasharray="4,4"/>
+    </svg>
+
+    <div class="flywheel-center">Continuous<br>Improvement<br>Loop</div>
+
+    <div class="flywheel-node fn-1" onclick="highlightNode(this)">
+      <span class="node-num">01</span>
+      Production traffic → Online evals (1% sampling)
+    </div>
+    <div class="flywheel-node fn-2" onclick="highlightNode(this)">
+      <span class="node-num">02</span>
+      Failure cases collected & tagged
+    </div>
+    <div class="flywheel-node fn-3" onclick="highlightNode(this)">
+      <span class="node-num">03</span>
+      Test dataset expanded weekly
+    </div>
+    <div class="flywheel-node fn-4" onclick="highlightNode(this)">
+      <span class="node-num">04</span>
+      Root cause analysis via dashboard
+    </div>
+    <div class="flywheel-node fn-5" onclick="highlightNode(this)">
+      <span class="node-num">05</span>
+      Prompt / model / RAG improvements
+    </div>
+    <div class="flywheel-node fn-6" onclick="highlightNode(this)">
+      <span class="node-num">06</span>
+      Pre-deploy offline validation → staged rollout
+    </div>
+  </div>
+</section>
+
+<!-- S7: CHECKLIST -->
+<section id="s7">
+  <div class="sec-number">07 — BUILD YOURS</div>
+  <h2>Your eval framework<br>implementation checklist</h2>
+  <p class="sec-sub">Work through these in order. Each one is a concrete action. Click to mark complete — your progress is saved below.</p>
+
+  <div class="checklist" id="checklist">
+    <!-- filled by JS -->
+  </div>
+
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:24px;margin-top:32px;">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px;">Completion</div>
+    <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
+      <div id="checklist-fill" style="height:100%;background:var(--teal);border-radius:3px;width:0%;transition:width 0.5s ease;"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:8px;">
+      <div style="font-family:var(--mono);font-size:11px;color:var(--text-muted);" id="checklist-label">0 / 10 steps complete</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--teal);" id="checklist-pct">0%</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div style="font-family:var(--serif);font-size:24px;margin-bottom:8px;">AI Evals — First Principles</div>
+    <div style="margin-bottom:4px;">Based on INDmoney Mind case study · Designed for PMs building AI products</div>
+    <div style="color:var(--text-dim);">The best eval framework is one you actually maintain.</div>
+  </div>
+</footer>
+
+</div><!-- /wrap -->
+
+<script>
+// ---- FIRST PRINCIPLES CARDS ----
+function toggleFP(card){
+  const wasOpen = card.classList.contains('open');
+  document.querySelectorAll('.fp-card').forEach(c=>c.classList.remove('open'));
+  if(!wasOpen) card.classList.add('open');
+  updateProgress();
+}
+
+// ---- PYRAMID ----
+function selectRow(row){
+  document.querySelectorAll('.pyramid-row').forEach(r=>r.classList.remove('selected'));
+  row.classList.add('selected');
+}
+
+// ---- METRICS SIMULATOR ----
+function updateMetrics(){
+  const accuracy = parseFloat(document.getElementById('sl-accuracy').value);
+  const compliance = parseFloat(document.getElementById('sl-compliance').value);
+  const halluc = parseFloat(document.getElementById('sl-halluc').value);
+  const latency = parseFloat(document.getElementById('sl-latency').value);
+  const sat = parseFloat(document.getElementById('sl-sat').value);
+
+  setValue('accuracy', accuracy+'%', accuracy<95?'crit':accuracy<98?'warn':'ok');
+  setValue('compliance', compliance+'%', compliance<99.5?'crit':'ok');
+  setValue('halluc', halluc+'%', halluc>5?'crit':halluc>2?'warn':'ok');
+  setValue('latency', latency+'s', latency>5?'crit':latency>3?'warn':'ok');
+  setValue('sat', sat+'%', sat<70?'crit':sat<80?'warn':'ok');
+
+  document.getElementById('sv-accuracy').textContent=accuracy+'%';
+  document.getElementById('sv-compliance').textContent=compliance+'%';
+  document.getElementById('sv-halluc').textContent=halluc+'%';
+  document.getElementById('sv-latency').textContent=latency+'s';
+  document.getElementById('sv-sat').textContent=sat+'%';
+
+  // deploy gate
+  const blocked = accuracy<95 || compliance<99.5 || halluc>5;
+  const warn = accuracy<98 || halluc>2 || latency>3 || sat<80;
+  const gate = document.getElementById('deploy-gate');
+  const icon = document.getElementById('deploy-icon');
+  const text = document.getElementById('deploy-text');
+  if(blocked){
+    icon.textContent='✗'; icon.style.color='var(--red)';
+    text.textContent='BLOCKED'; text.style.color='var(--red)';
+  } else if(warn){
+    icon.textContent='⚠'; icon.style.color='var(--amber)';
+    text.textContent='REVIEW'; text.style.color='var(--amber)';
+  } else {
+    icon.textContent='✓'; icon.style.color='var(--teal)';
+    text.textContent='CLEARED'; text.style.color='var(--teal)';
+  }
+}
+
+function setValue(id, val, status){
+  document.getElementById('mv-'+id).textContent=val;
+  const ms = document.getElementById('ms-'+id);
+  ms.className='metric-status status-'+status;
+  const mc = document.getElementById('mc-'+id);
+  mc.style.borderColor=status==='crit'?'var(--red)':status==='warn'?'var(--amber)':'var(--border)';
+}
+
+// ---- DATASET BARS ----
+const dataset = [
+  {label:'Fundamental Analysis',count:100,pct:20,color:'#F5A623',priority:'P0'},
+  {label:'Compliance / Safety',count:80,pct:16,color:'#E85D75',priority:'P0'},
+  {label:'Edge Cases',count:60,pct:12,color:'#E85D75',priority:'P0'},
+  {label:'Technical Analysis',count:80,pct:16,color:'#F5A623',priority:'P0'},
+  {label:'Adversarial Inputs',count:30,pct:6,color:'#E85D75',priority:'P0'},
+  {label:'Sentiment & News',count:60,pct:12,color:'#F5A623',priority:'P1'},
+  {label:'Peer Comparisons',count:50,pct:10,color:'#F5A623',priority:'P1'},
+  {label:'Multi-turn Conversations',count:40,pct:8,color:'#2EC4B6',priority:'P2'},
 ];
 
-const content = {
-  foundations: {
-    frameworks: [
-      {
-        name: "The 3-Layer Data Strategy Stack",
-        description:
-          "Every product data strategy operates at three layers that must be aligned:",
-        layers: [
-          {
-            name: "Collection Layer",
-            desc: "What signals do you capture? Events, states, interactions, context. The PM decides WHAT to instrument, not HOW.",
-            example: "Mobile game: session start/end, level attempts, ad impressions, IAP triggers",
-          },
-          {
-            name: "Intelligence Layer",
-            desc: "How do raw signals become decisions? Metrics, models, dashboards, alerts. PM owns the question, not the query.",
-            example: "Retention D1/D7/D30, monetization ARPU/ARPDAU, LTV prediction models",
-          },
-          {
-            name: "Action Layer",
-            desc: "How does intelligence change the product? Feature flags, personalization, pricing, roadmap. The loop that closes.",
-            example: "Kill/go decisions based on CPI vs. predicted LTV ratio",
-          },
-        ],
-      },
-      {
-        name: "The Data PM Mindset Shift",
-        description: "Senior PMs think differently about data than junior ones:",
-        shifts: [
-          { from: "Reporting on data", to: "Designing for data collection" },
-          { from: "Asking 'what happened?'", to: "Asking 'what should we measure to decide?'" },
-          { from: "Waiting for analytics", to: "Defining success metrics before building" },
-          { from: "Data as evidence", to: "Data as product infrastructure" },
-          { from: "Dashboard consumer", to: "Instrumentation architect" },
-        ],
-      },
-    ],
-    keyQuestions: [
-      "What decision would this data help me make?",
-      "Who owns the metric — product, growth, finance?",
-      "What's the lagging indicator? What's the leading indicator?",
-      "How long before I have enough data to be statistically confident?",
-      "What can be gamed, and how does that change what I measure?",
-    ],
-    caseStudy: {
-      title: "Voodoo Publishing Decision Framework",
-      context:
-        "You receive a new prototype from an external studio. The game has good early organic signals but needs a go/kill decision in 2 weeks.",
-      challenge:
-        "What's your data strategy for this decision? You have a $15K test budget.",
-      steps: [
-        { step: "Define the decision", detail: "Kill/soft-launch/scale — what thresholds move you between states?" },
-        { step: "Identify leading indicators", detail: "CPI &lt; $0.40 on Tier-3, D1 retention &gt; 40%, session length &gt; 4min" },
-        { step: "Design the test", detail: "3-day UA campaign on Meta, 2 creatives, 1 GEO (PH or IN)" },
-        { step: "Set instrumentation requirements", detail: "Studio must have MMP (Adjust/AppsFlyer) + event taxonomy agreed before test" },
-        { step: "Define kill criteria upfront", detail: "If CPI &gt; $0.80 at day 2 with 500 installs: kill. No exceptions." },
-      ],
-    },
-  },
-  b2b: {
-    frameworks: [
-      {
-        name: "B2B Data Contract Framework",
-        description:
-          "In B2B, data strategy must account for trust, compliance, and multi-tenancy from day one.",
-        pillars: [
-          {
-            name: "Data Ownership",
-            icon: "⚖",
-            desc: "Who owns the data the customer generates? This is a legal AND product question. Ambiguity kills enterprise deals.",
-            pm_action: "Write an explicit data ownership clause in your product documentation, not just legal docs.",
-          },
-          {
-            name: "Data Isolation",
-            icon: "🔒",
-            desc: "Multi-tenant architectures require PMs to understand row-level security, org scoping, and audit trails.",
-            pm_action: "Define tenant isolation requirements in PRDs. 'Secure' is not a requirement — 'no cross-tenant data leakage in all API responses' is.",
-          },
-          {
-            name: "Data Portability",
-            icon: "📤",
-            desc: "GDPR/CCPA mandates export. But export design is a product decision — what format, what latency, what completeness?",
-            pm_action: "Design the export experience before you design the import. It reveals gaps in your data model.",
-          },
-          {
-            name: "Data Observability",
-            icon: "👁",
-            desc: "Enterprise customers want to know what data you collect about them. Transparency = trust = renewal.",
-            pm_action: "Build a 'data usage' page in your admin console — shows customers their data footprint.",
-          },
-        ],
-      },
-    ],
-    keyMetrics: {
-      acquisition: ["Trial-to-paid conversion by ICP segment", "Time to first value (TTFV)", "Onboarding completion rate by role"],
-      engagement: ["Feature adoption by seat tier", "DAU/MAU by user role", "API calls per seat/month"],
-      retention: ["Net Revenue Retention (NRR)", "Logo churn by cohort", "Expansion revenue rate"],
-      health: ["Support ticket rate per feature", "Error rate per customer tier", "Rollback frequency post-deploy"],
-    },
-    caseStudy: {
-      title: "Go1 — Content Intelligence Platform",
-      context:
-        "Go1 aggregates 100K+ learning courses from 200+ providers and distributes to enterprise HR platforms. You're the PM for the recommendation engine.",
-      challenge:
-        "Design a data strategy that improves content discovery while satisfying enterprise compliance requirements.",
-      approach: [
-        {
-          phase: "Discovery",
-          action: "Map the data flows: learner behavior → content metadata → employer reporting → provider analytics",
-          insight: "Discovered learners, admins, and providers have completely different data needs from the same platform",
-        },
-        {
-          phase: "Architecture",
-          action: "Define org-scoped vs. aggregated signal separation. Employer can't see cross-org learner behavior.",
-          insight: "Built a 'privacy-preserving recommendation' system using only aggregated content engagement, not individual profiles",
-        },
-        {
-          phase: "Instrumentation",
-          action: "Defined 12 canonical events: content_viewed, content_completed, content_rated, search_query, search_result_clicked...",
-          insight: "Event taxonomy became the contract between engineering, data, and product — reduced analytics debt by 60%",
-        },
-        {
-          phase: "Metrics",
-          action: "Primary: content completion rate per ICP. Secondary: search-to-completion funnel. Guardrail: employer data isolation audit pass rate",
-          insight: "Guardrail metric prevented shipping recommendation improvement that would have failed SOC2 audit",
-        },
-      ],
-    },
-  },
-  api: {
-    frameworks: [
-      {
-        name: "API-First Data Strategy: The Platform Flywheel",
-        description:
-          "API products generate data about how people USE your API, which is different from traditional product data. This usage telemetry IS the product.",
-        flywheel: [
-          { node: "Developer adopts API", next: "Usage telemetry generated" },
-          { node: "Usage telemetry → insights", next: "Identify friction &amp; power users" },
-          { node: "Reduce friction", next: "More adoption, deeper integration" },
-          { node: "Power user patterns → new endpoints", next: "Platform expands" },
-          { node: "Platform expands → more developers", next: "Back to start" },
-        ],
-      },
-      {
-        name: "API PM Data Dimensions",
-        dimensions: [
-          {
-            name: "Latency Percentiles",
-            why: "p50 is vanity. p99 is truth. Enterprise SLAs live at p99.",
-            pm_action: "Set SLO thresholds in PRD: p50 &lt; 200ms, p99 &lt; 1s, p999 &lt; 3s. Alert on p99, not average.",
-          },
-          {
-            name: "Error Budget",
-            why: "SRE concept that PMs must own. How much unreliability is acceptable per month?",
-            pm_action: "Define error budget in launch criteria. If you burn 50% in week 1, you stop shipping features.",
-          },
-          {
-            name: "Endpoint Funnel",
-            why: "Developers drop off at integration steps. Each failed API call is a conversion loss.",
-            pm_action: "Build a developer onboarding funnel: first API call → first successful response → first production call.",
-          },
-          {
-            name: "Usage Cohorts",
-            why: "Not all API users are equal. Segment by call volume, endpoint mix, error rate, recency.",
-            pm_action: "Define 'healthy API consumer' profile. Users outside that profile need proactive outreach.",
-          },
-        ],
-      },
-    ],
-    keyMetrics: {
-      activation: ["Time to first successful API call", "SDK install to hello world time", "Docs page to first call conversion"],
-      usage: ["API calls/active customer/day", "Endpoint adoption breadth", "Unique endpoints called per account"],
-      reliability: ["p99 latency by endpoint", "Error rate by error type", "Retry rate (signals reliability issues)"],
-      growth: ["API call growth rate", "New endpoint adoption velocity", "SDK version upgrade rate"],
-    },
-    caseStudy: {
-      title: "Anthropic Claude API — PM Perspective",
-      context:
-        "You're PM for the Claude API developer experience. You need a data strategy to improve activation (time-to-first-call) and identify at-risk developer accounts.",
-      challenge:
-        "Thousands of developers sign up but only 30% make their first API call within 7 days. Design a data-driven intervention system.",
-      approach: [
-        {
-          phase: "Instrumentation",
-          action: "Define the activation funnel: signup → API key created → first call attempted → first successful call → first production call",
-          insight: "Discovered 40% drop-off between 'key created' and 'first call attempted' — docs friction, not motivation problem",
-        },
-        {
-          phase: "Segmentation",
-          action: "Classify developers by intent signal: SDK choice, first endpoint called, model selected, error patterns",
-          insight: "Developers calling /messages with claude-haiku on day 1 had 3x higher 30-day retention than those starting with Opus",
-        },
-        {
-          phase: "Intervention",
-          action: "Build automated health scores: 0-100 based on recency, frequency, error rate, endpoint diversity",
-          insight: "Accounts with score &lt; 30 at day 7 had 80% churn probability — trigger docs nudge or sales outreach",
-        },
-        {
-          phase: "Feedback loop",
-          action: "A/B test onboarding variants. Measure docs page → first call conversion as primary metric.",
-          insight: "Interactive playground reduced time-to-first-call from 47min to 8min, lifted 7-day activation by 22%",
-        },
-      ],
-    },
-  },
-  b2c: {
-    frameworks: [
-      {
-        name: "B2C / Marketplace Dual-Sided Data Model",
-        description:
-          "Marketplaces have two customers generating data simultaneously. Your strategy must serve both and prevent gaming.",
-        sides: {
-          supply: {
-            label: "Supply Side",
-            color: "#FF6B6B",
-            metrics: ["Listing quality score", "Fulfillment rate", "Response time", "Cancellation rate"],
-            strategy: "Build trust signals that filter quality, creating supply-side incentives to perform",
-          },
-          demand: {
-            label: "Demand Side",
-            color: "#5B8AF5",
-            metrics: ["Search-to-click rate", "Click-to-transaction rate", "Repeat purchase rate", "NPS by category"],
-            strategy: "Use behavior signals to personalize and reduce decision fatigue",
-          },
-          intersection: {
-            label: "Marketplace Health",
-            metrics: ["Liquidity rate (searches with ≥1 transaction)", "Match quality score", "Price elasticity by category", "Take rate sustainability"],
-          },
-        },
-      },
-      {
-        name: "B2C Personalization Data Strategy",
-        stages: [
-          { stage: "Cold Start", signal: "Device type, geo, referral source, UTM params", action: "Serve popular content by cohort similarity" },
-          { stage: "Early Signal", signal: "First 3 taps/views, category affinity emerging", action: "Shift toward implicit preference model" },
-          { stage: "Established User", signal: "Historical transactions, search history, ratings", action: "Deep personalization, cross-sell, loyalty" },
-          { stage: "At-Risk User", signal: "Declining session freq, failed searches, returns", action: "Trigger winback, surface new inventory, price sensitivity" },
-          { stage: "Churned", signal: "30+ days inactive", action: "Email/push with personalized hook; else sunset" },
-        ],
-      },
-    ],
-    keyMetrics: {
-      liquidity: ["Search-to-transaction rate by category", "Avg time to first match", "GMV per active listing"],
-      engagement: ["D1/D7/D30 retention", "Sessions/user/week", "Avg session depth (pages viewed)"],
-      monetization: ["Take rate by category", "ARPU by user cohort", "LTV:CAC ratio"],
-      supply: ["New supply listing rate", "Supply churn rate", "Listing quality distribution"],
-    },
-    caseStudy: {
-      title: "Mobile Game as B2C Product — Voodoo Portfolio",
-      context:
-        "You're launching a new casual game. It's passed marketability tests (CPI $0.28, D1 retention 48%). Now you need to design the data strategy for the live operations phase.",
-      challenge:
-        "The game has ads + IAP monetization. Design a data strategy that maximizes LTV without degrading retention.",
-      approach: [
-        {
-          phase: "Segmentation",
-          action: "Classify users at D3: whales (IAP&gt;0), ad-tolerant, ad-resistant, at-risk churners",
-          insight: "Ad-resistant users shown 3+ ads/session churn at 2.4x rate — segment-based frequency caps worth $0.08 ARPDAU uplift",
-        },
-        {
-          phase: "Monetization funnel",
-          action: "Map IAP triggers: level fail &gt;3x, inventory empty, cosmetic unlock prompt. Track prompt-to-purchase rate.",
-          insight: "Level 12 had highest prompt-to-purchase rate (18%) vs. game average (4%). Redesigned IAP surface around difficulty spikes.",
-        },
-        {
-          phase: "Retention vs Revenue tradeoff",
-          action: "Build guardrail metric: if D7 retention drops &gt;3pp vs. baseline when monetization variant is live → rollback",
-          insight: "Surfaced that aggressive IAP prompting at level 8 was destroying long-term LTV despite short-term revenue spike",
-        },
-        {
-          phase: "LiveOps data model",
-          action: "Design A/B testing framework for seasonal content, limited-time offers, and difficulty curves",
-          insight: "Event-driven content improved D30 retention by 12pp — data showed players in active events churned 40% less",
-        },
-      ],
-    },
-  },
-  systemdesign: {
-    frameworks: [
-      {
-        name: "PM's System Design Mental Model",
-        description:
-          "You don't need to design the system. You need to understand it well enough to define requirements and spot risks.",
-        concepts: [
-          {
-            concept: "Event Streaming vs. Batch Processing",
-            pm_question: "Do I need to react to this data in real-time or can it wait?",
-            example: "Fraud detection → real-time (Kafka). Monthly revenue reporting → batch (Spark/Airflow).",
-            decision: "Real-time is 10x more expensive. Justify it with a business case.",
-          },
-          {
-            concept: "Data Warehouse vs. Data Lake",
-            pm_question: "Is this data structured and query-ready, or do we need raw flexibility?",
-            example: "Finance reporting → Warehouse (BigQuery, Redshift). ML feature store, raw logs → Lake (S3 + Athena).",
-            decision: "Most PMs need warehouse for metrics. Push back on lake-first approaches without clear use cases.",
-          },
-          {
-            concept: "Schema Design",
-            pm_question: "What questions will I need to ask of this data in 6 months?",
-            example: "If you don't store 'original price' at time of transaction, you can never analyze discount impact retroactively.",
-            decision: "Review data schemas before engineering finalizes them. Look for missing temporal dimensions.",
-          },
-          {
-            concept: "Event Taxonomy",
-            pm_question: "What are the canonical verbs and nouns of my product?",
-            example: "user_id, timestamp, event_name, properties{} — every event needs these 4. Avoid 'misc' properties.",
-            decision: "Own the event tracking plan as a PM artifact. It's as important as the PRD.",
-          },
-          {
-            concept: "Data Contracts",
-            pm_question: "What guarantees does upstream data provide to downstream consumers?",
-            example: "If the auth service changes user_id format, every downstream dashboard breaks. Contract prevents this.",
-            decision: "Require data contracts for all high-stakes pipelines. PM should review and sign off.",
-          },
-        ],
-      },
-      {
-        name: "The PM Data Architecture Review Checklist",
-        checklist: [
-          "✓ Are all key user actions instrumented as events?",
-          "✓ Does every event have a consistent schema (user_id, timestamp, context)?",
-          "✓ Is there a data dictionary / event catalog maintained?",
-          "✓ Are there automated data quality checks (null rates, volume anomalies)?",
-          "✓ Is sensitive PII separated from behavioral data?",
-          "✓ Is there a data retention policy defined per data type?",
-          "✓ Can I ask any product question in under 30 minutes with available tooling?",
-          "✓ Do we have a clear owner for each data pipeline?",
-          "✓ Is the cost of data infrastructure tracked as a product metric?",
-        ],
-      },
-    ],
-    caseStudy: {
-      title: "Designing Data Infrastructure for XVentures Event Matching",
-      context:
-        "XVentures connects investors, founders, and corporates at events using algorithmic matching. You're defining the data architecture requirements.",
-      challenge:
-        "The platform needs to score 500 attendees against each other in real-time, learn from match outcomes, and provide explainability for each recommendation.",
-      approach: [
-        {
-          phase: "Define data entities",
-          action: "Attendee profiles, event contexts, match requests, match outcomes, feedback signals",
-          insight: "Outcome tracking (did the match lead to a meeting?) requires a post-event feedback loop — often missed in initial design",
-        },
-        {
-          phase: "Choose processing model",
-          action: "Real-time scoring during event (streaming) + overnight model retraining (batch) + historical analysis (warehouse)",
-          insight: "Hybrid architecture: Kafka for live match requests, Redis for real-time feature cache, BigQuery for model training data",
-        },
-        {
-          phase: "Define the training signal",
-          action: "What counts as a 'good match'? Meeting scheduled, meeting held, LinkedIn connection, deal closed?",
-          insight: "'Meeting scheduled' is the only signal available same-day. 'Deal closed' is the ultimate signal but lags 6-18 months.",
-        },
-        {
-          phase: "Explainability layer",
-          action: "Every match recommendation must have human-readable rationale stored as structured data",
-          insight: "Required storing feature weights per recommendation — explainability is a PM requirement, not just a nice-to-have",
-        },
-      ],
-    },
-  },
-  launch: {
-    phases: [
-      {
-        phase: "Phase 0 — Pre-Build",
-        icon: "❶",
-        color: "#E8C547",
-        activities: [
-          {
-            activity: "Define North Star Metric",
-            detail: "One metric that best captures value delivered. Not revenue — what creates revenue.",
-            example: "Duolingo: DAUs. Airbnb: Nights booked. Voodoo game: D30 retention × ARPDAU",
-            output: "Metric documented in PRD with target, baseline, and measurement method",
-          },
-          {
-            activity: "Build the Metric Tree",
-            detail: "Decompose North Star into driver metrics. Each driver should be actionable by a team.",
-            example: "DAUs = new installs × D1 ret × D7 ret × reactivations",
-            output: "Metric tree diagram owned by PM, reviewed by data/eng/design",
-          },
-          {
-            activity: "Write the Instrumentation Spec",
-            detail: "Before writing a line of code, define every event you need to track. Include event name, properties, trigger condition.",
-            example: "level_started: {level_id, difficulty, attempt_number, session_id, timestamp}",
-            output: "Tracking plan spreadsheet — becomes the contract with analytics",
-          },
-          {
-            activity: "Define success, failure, and kill criteria",
-            detail: "What numbers move you to scale? What numbers kill the project? Write these down BEFORE you see data.",
-            example: "Success: D7 &gt; 25%, CPI &lt; $0.50 at 500 installs. Kill: CPI &gt; $1.20 OR D1 &lt; 30%.",
-            output: "Decision criteria doc, approved by stakeholders before test begins",
-          },
-        ],
-      },
-      {
-        phase: "Phase 1 — Soft Launch",
-        icon: "❷",
-        color: "#5B8AF5",
-        activities: [
-          {
-            activity: "Instrument before you acquire",
-            detail: "Never buy users before your tracking is validated. Run a 50-user seed test to verify all events fire correctly.",
-            example: "Use Mixpanel/Amplitude/Firebase to validate event schema. Check for nulls, duplicates, missing context.",
-            output: "Analytics QA sign-off before first paid install",
-          },
-          {
-            activity: "Define your monitoring dashboard",
-            detail: "Build one dashboard that answers: is this launch healthy? Should be viewable in 60 seconds.",
-            example: "Top row: CPI, installs/day, D1 retention. Second row: session length, error rate, crash rate.",
-            output: "Live dashboard linked in #launch Slack channel, updated hourly",
-          },
-          {
-            activity: "Set anomaly alerts",
-            detail: "Don't rely on humans to notice problems. Set automated alerts for out-of-range metrics.",
-            example: "Alert if D1 retention drops &gt;5pp vs. 7-day rolling average. Alert if error rate &gt; 2%.",
-            output: "Alerting rules in PagerDuty/Datadog/Grafana, tested before launch",
-          },
-        ],
-      },
-      {
-        phase: "Phase 2 — Scale Decision",
-        icon: "❸",
-        color: "#4ECDC4",
-        activities: [
-          {
-            activity: "Conduct the decision review",
-            detail: "Use your pre-defined criteria. Don't let optimism override the framework. Show data, not narrative.",
-            example: "Present: actual vs. target for each criterion. Mark green/yellow/red. Recommendation with confidence level.",
-            output: "Go/kill/iterate decision documented with rationale",
-          },
-          {
-            activity: "Identify the constraint",
-            detail: "What's the one thing limiting growth? Acquisition cost? Retention? Monetization? Focus resources on the bottleneck.",
-            example: "If CPI is good but D7 retention is low → retention is the constraint → no point scaling UA yet",
-            output: "Constraint clearly named. Next sprint focused on moving that single metric.",
-          },
-          {
-            activity: "Design the learning agenda",
-            detail: "What do you still not know? Turn unknowns into experiments with pre-registered hypotheses.",
-            example: "Unknown: Does tutorial length affect D1 retention? Experiment: 3-step vs. 8-step tutorial, 50/50 split.",
-            output: "A/B test backlog with prioritization by expected impact and confidence",
-          },
-        ],
-      },
-      {
-        phase: "Phase 3 — Live Operations",
-        icon: "❹",
-        color: "#34D399",
-        activities: [
-          {
-            activity: "Maintain the metric tree",
-            detail: "As the product matures, the metric tree evolves. Review quarterly. Kill metrics that no longer drive decisions.",
-            example: "Early stage: acquisition metrics dominate. Maturity: retention and monetization metrics dominate.",
-            output: "Living metric tree doc with last-updated date and owner",
-          },
-          {
-            activity: "Build the experimentation culture",
-            detail: "Every feature is a hypothesis. Run A/B tests by default, not by exception. Track experiment velocity.",
-            example: "Target: 3 A/B tests live at all times. Velocity: decision within 2 weeks of full ramp.",
-            output: "Experiment log with outcomes — celebrates learnings, not just wins",
-          },
-          {
-            activity: "Detect and respond to metric decay",
-            detail: "Metrics change over time as cohorts mature. Build cohort views, not just aggregate views.",
-            example: "Aggregate D7 retention is stable. But new cohort D7 is declining — a silent decay you'd miss without cohort view.",
-            output: "Weekly cohort health report. Trigger investigation if new cohort metric deviates &gt;10% from prior 4-week average.",
-          },
-        ],
-      },
-    ],
-  },
-  quiz: {
-    questions: [
-      {
-        id: 1,
-        scenario:
-          "You're PM for a B2B HR platform. The sales team wants to show prospects a dashboard of 'aggregate industry benchmarks' using customer data. What's your data strategy response?",
-        type: "multi",
-        options: [
-          "Build it immediately — it's a great value prop",
-          "Check data ownership clauses in customer contracts first",
-          "Ensure customers consent to contributing anonymized data",
-          "Define k-anonymity threshold (min customers per cohort to show)",
-          "Treat this as a new product line — requires separate data governance review",
-        ],
-        correct: [1, 2, 3, 4],
-        explanation:
-          "This is a data monetization question, not a feature question. You must verify legal permission (contracts), design consent flows, ensure statistical privacy (k-anonymity prevents reverse-engineering), and treat it as a new product with its own governance process. Building it immediately is the only wrong answer.",
-      },
-      {
-        id: 2,
-        scenario:
-          "Your API product has 10,000 active developer accounts. Average API call volume is 500 calls/day/account. You're planning a major API version upgrade. What data do you need to evaluate rollout risk?",
-        type: "multi",
-        options: [
-          "% of accounts using deprecated endpoints that will break",
-          "Call volume distribution (top 10% of accounts = what % of traffic?)",
-          "Error rate trend over the past 30 days",
-          "Accounts with zero activity in last 30 days",
-          "SDK version distribution across accounts",
-        ],
-        correct: [0, 1, 3, 4],
-        explanation:
-          "Breaking change risk = % of accounts on deprecated endpoints × their traffic share. Volume distribution reveals blast radius (if top 10% = 80% of traffic, you must migrate them first). SDK versions determine migration effort. Inactive accounts can be force-migrated with less risk. Error rate trend is useful but less critical for rollout planning — it's more of an ongoing health signal.",
-      },
-      {
-        id: 3,
-        scenario:
-          "A mobile game you're publishing hits its D1 retention target (45%) but CPI is $0.68 vs. target of $0.40. The studio wants to iterate creatives and retest. What's your decision?",
-        type: "single",
-        options: [
-          "Kill the project — it missed CPI target",
-          "Give 2 more weeks and $10K to iterate creatives",
-          "Soft launch in lower-CPI geos while iterating",
-          "Update the financial model — if LTV supports $0.68 CPI, it's viable",
-          "Escalate to leadership to get more budget",
-        ],
-        correct: [3],
-        explanation:
-          "CPI targets are proxies for LTV economics, not rules in themselves. D1 at 45% is a strong retention signal — this game likely has higher LTV than your initial model assumed. Before killing or extending blindly, recalculate: if predicted LTV at 45% D1 justifies $0.68 CPI profitably, it's a go. If not, kill. The decision is always LTV:CPI, not CPI in isolation.",
-      },
-      {
-        id: 4,
-        scenario:
-          "You're launching a marketplace feature that matches freelancers to projects. On day 3 post-launch, your match rate is 22% (target: 40%). What's your diagnosis framework?",
-        type: "multi",
-        options: [
-          "Check supply-demand ratio by category — is there enough supply to match?",
-          "Review match algorithm parameters — is the quality threshold too strict?",
-          "Check if users understand the feature — measure feature discovery rate",
-          "Analyze failed match reasons — what's blocking matches?",
-          "Look at the definition of 'match' — is 22% measuring the right thing?",
-        ],
-        correct: [0, 1, 2, 3, 4],
-        explanation:
-          "All five are correct — this is a diagnostic fan-out, not a single answer. In marketplace metrics, low performance can stem from: supply scarcity (inventory problem), algorithm miscalibration (product problem), discoverability failure (UX problem), structural blockers (data/logic problem), or metric definition error (measurement problem). A senior PM investigates all five before committing to a fix.",
-      },
-    ],
-  },
-};
-
-const COLORS = {
-  bg: "#0A0D14",
-  surface: "#111520",
-  border: "#1E2535",
-  text: "#E8EAEF",
-  muted: "#6B7894",
-  accent: "#E8C547",
-};
-
-export default function DataStrategyGuide() {
-  const [activeModule, setActiveModule] = useState("foundations");
-  const [expandedItems, setExpandedItems] = useState({});
-  const [quizAnswers, setQuizAnswers] = useState({});
-  const [quizSubmitted, setQuizSubmitted] = useState({});
-  const [completedModules, setCompletedModules] = useState(new Set());
-  const [activeTab, setActiveTab] = useState({});
-
-  const toggle = (key) => setExpandedItems((p) => ({ ...p, [key]: !p[key] }));
-
-  const markComplete = (moduleId) => {
-    setCompletedModules((p) => new Set([...p, moduleId]));
-  };
-
-  const toggleQuizAnswer = (qId, optIdx) => {
-    if (quizSubmitted[qId]) return;
-    setQuizAnswers((p) => {
-      const q = content.quiz.questions.find((q) => q.id === qId);
-      if (q.type === "single") return { ...p, [qId]: [optIdx] };
-      const prev = p[qId] || [];
-      return {
-        ...p,
-        [qId]: prev.includes(optIdx) ? prev.filter((i) => i !== optIdx) : [...prev, optIdx],
-      };
+function buildDataset(){
+  const wrap = document.getElementById('dataset-bars');
+  wrap.innerHTML = dataset.map((d,i)=>`
+    <div class="ds-row" style="animation:fadeUp 0.4s ease ${i*0.06}s both;">
+      <div class="ds-label">${d.label}</div>
+      <div class="ds-bar-wrap">
+        <div class="ds-bar" style="background:${d.color};" data-pct="${d.pct}">${d.count} cases</div>
+      </div>
+      <div class="ds-count">${d.count}</div>
+      <div class="ds-tag"><span class="tag ${d.priority==='P0'?'tag-p0':d.priority==='P1'?'tag-p1':'tag-p2'}">${d.priority}</span></div>
+    </div>
+  `).join('');
+  // animate bars
+  setTimeout(()=>{
+    document.querySelectorAll('.ds-bar').forEach(b=>{
+      b.style.width=b.dataset.pct+'%';
     });
-  };
+  },100);
+}
+buildDataset();
 
-  const submitQuiz = (qId) => {
-    setQuizSubmitted((p) => ({ ...p, [qId]: true }));
-  };
+// ---- TABS ----
+function switchTab(id){
+  document.querySelectorAll('.eval-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.eval-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  event.target.classList.add('active');
+}
 
-  const currentModule = MODULES.find((m) => m.id === activeModule);
+// ---- FLYWHEEL ----
+function highlightNode(node){
+  document.querySelectorAll('.flywheel-node').forEach(n=>n.style.borderColor='');
+  node.style.borderColor='var(--amber)';
+  node.style.color='var(--text)';
+  node.style.background='var(--amber-glow)';
+  setTimeout(()=>{
+    node.style.borderColor='';
+    node.style.color='';
+    node.style.background='';
+  },2000);
+}
 
-  const styles = {
-    container: {
-      minHeight: "100vh",
-      backgroundColor: COLORS.bg,
-      color: COLORS.text,
-      fontFamily: "'Georgia', 'Times New Roman', serif",
-      display: "flex",
-      flexDirection: "column",
-    },
-    header: {
-      borderBottom: `1px solid ${COLORS.border}`,
-      padding: "20px 32px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      position: "sticky",
-      top: 0,
-      backgroundColor: COLORS.bg,
-      zIndex: 100,
-    },
-    headerTitle: {
-      fontSize: "13px",
-      letterSpacing: "0.2em",
-      textTransform: "uppercase",
-      color: COLORS.muted,
-      fontFamily: "monospace",
-    },
-    headerAccent: { color: COLORS.accent },
-    progress: {
-      fontSize: "12px",
-      color: COLORS.muted,
-      fontFamily: "monospace",
-    },
-    layout: {
-      display: "flex",
-      flex: 1,
-      minHeight: 0,
-    },
-    sidebar: {
-      width: "220px",
-      borderRight: `1px solid ${COLORS.border}`,
-      padding: "24px 0",
-      flexShrink: 0,
-      position: "sticky",
-      top: "61px",
-      height: "calc(100vh - 61px)",
-      overflowY: "auto",
-    },
-    navItem: (active, mod) => ({
-      display: "flex",
-      alignItems: "center",
-      gap: "10px",
-      padding: "10px 20px",
-      cursor: "pointer",
-      transition: "all 0.15s",
-      borderLeft: active ? `2px solid ${mod.color}` : "2px solid transparent",
-      backgroundColor: active ? "rgba(255,255,255,0.04)" : "transparent",
-    }),
-    navIcon: (mod, active) => ({
-      fontSize: "16px",
-      color: active ? mod.color : COLORS.muted,
-      minWidth: "20px",
-      textAlign: "center",
-    }),
-    navLabel: (active, mod) => ({
-      fontSize: "13px",
-      color: active ? COLORS.text : COLORS.muted,
-      fontFamily: "monospace",
-    }),
-    navCheck: {
-      marginLeft: "auto",
-      fontSize: "10px",
-      color: "#34D399",
-    },
-    main: {
-      flex: 1,
-      padding: "40px 48px",
-      overflowY: "auto",
-      maxWidth: "900px",
-    },
-    moduleHeader: {
-      marginBottom: "40px",
-    },
-    moduleIcon: (color) => ({
-      fontSize: "32px",
-      color: color,
-      marginBottom: "12px",
-      display: "block",
-    }),
-    moduleTitle: {
-      fontSize: "28px",
-      fontWeight: "bold",
-      marginBottom: "8px",
-      lineHeight: 1.2,
-    },
-    moduleSubtitle: {
-      fontSize: "15px",
-      color: COLORS.muted,
-      fontStyle: "italic",
-    },
-    sectionLabel: {
-      fontSize: "11px",
-      letterSpacing: "0.2em",
-      textTransform: "uppercase",
-      color: currentModule?.color || COLORS.accent,
-      fontFamily: "monospace",
-      marginBottom: "16px",
-      marginTop: "40px",
-      display: "block",
-    },
-    card: {
-      backgroundColor: COLORS.surface,
-      border: `1px solid ${COLORS.border}`,
-      borderRadius: "8px",
-      padding: "24px",
-      marginBottom: "16px",
-    },
-    cardTitle: {
-      fontSize: "16px",
-      fontWeight: "bold",
-      marginBottom: "12px",
-      color: COLORS.text,
-    },
-    cardDesc: {
-      fontSize: "14px",
-      color: COLORS.muted,
-      lineHeight: 1.6,
-      marginBottom: "20px",
-    },
-    layer: (color) => ({
-      borderLeft: `3px solid ${color || COLORS.accent}`,
-      paddingLeft: "16px",
-      marginBottom: "16px",
-    }),
-    layerName: {
-      fontSize: "14px",
-      fontWeight: "bold",
-      color: COLORS.text,
-      marginBottom: "4px",
-    },
-    layerDesc: {
-      fontSize: "13px",
-      color: COLORS.muted,
-      lineHeight: 1.5,
-      marginBottom: "8px",
-    },
-    exampleTag: {
-      display: "inline-block",
-      fontSize: "12px",
-      fontFamily: "monospace",
-      backgroundColor: "rgba(232, 197, 71, 0.08)",
-      border: "1px solid rgba(232, 197, 71, 0.2)",
-      borderRadius: "4px",
-      padding: "4px 10px",
-      color: COLORS.accent,
-    },
-    shiftTable: {
-      width: "100%",
-      borderCollapse: "collapse",
-    },
-    shiftRow: (i) => ({
-      backgroundColor: i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.02)",
-    }),
-    shiftCell: {
-      padding: "10px 16px",
-      fontSize: "13px",
-      borderBottom: `1px solid ${COLORS.border}`,
-    },
-    arrow: {
-      color: currentModule?.color || COLORS.accent,
-      fontSize: "16px",
-      padding: "0 8px",
-    },
-    questionList: {
-      listStyle: "none",
-      padding: 0,
-      margin: 0,
-    },
-    questionItem: {
-      padding: "10px 0",
-      borderBottom: `1px solid ${COLORS.border}`,
-      fontSize: "14px",
-      color: COLORS.text,
-      lineHeight: 1.5,
-      display: "flex",
-      gap: "12px",
-    },
-    bulletDot: (color) => ({
-      color: color || COLORS.accent,
-      minWidth: "16px",
-      marginTop: "2px",
-    }),
-    caseStudyBox: {
-      backgroundColor: "rgba(10,13,20,0.8)",
-      border: `1px solid ${currentModule?.color || COLORS.accent}`,
-      borderRadius: "8px",
-      padding: "24px",
-      marginBottom: "16px",
-    },
-    badge: (color) => ({
-      display: "inline-block",
-      fontSize: "11px",
-      fontFamily: "monospace",
-      backgroundColor: color + "20",
-      border: `1px solid ${color}40`,
-      borderRadius: "20px",
-      padding: "3px 12px",
-      color: color,
-      marginBottom: "12px",
-    }),
-    stepRow: {
-      display: "flex",
-      gap: "16px",
-      marginBottom: "16px",
-      alignItems: "flex-start",
-    },
-    stepNum: (color) => ({
-      minWidth: "28px",
-      height: "28px",
-      borderRadius: "50%",
-      backgroundColor: color + "20",
-      border: `1px solid ${color}60`,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      fontSize: "12px",
-      fontFamily: "monospace",
-      color: color,
-      flexShrink: 0,
-    }),
-    metricGrid: {
-      display: "grid",
-      gridTemplateColumns: "1fr 1fr",
-      gap: "16px",
-    },
-    metricCard: {
-      backgroundColor: COLORS.bg,
-      border: `1px solid ${COLORS.border}`,
-      borderRadius: "6px",
-      padding: "16px",
-    },
-    metricTitle: {
-      fontSize: "11px",
-      letterSpacing: "0.15em",
-      textTransform: "uppercase",
-      color: COLORS.muted,
-      fontFamily: "monospace",
-      marginBottom: "10px",
-    },
-    metricItem: {
-      fontSize: "13px",
-      color: COLORS.text,
-      padding: "4px 0",
-      borderBottom: `1px solid rgba(255,255,255,0.04)`,
-    },
-    btn: (color) => ({
-      display: "inline-flex",
-      alignItems: "center",
-      gap: "8px",
-      padding: "10px 20px",
-      backgroundColor: color + "15",
-      border: `1px solid ${color}40`,
-      borderRadius: "6px",
-      color: color,
-      fontSize: "13px",
-      fontFamily: "monospace",
-      cursor: "pointer",
-      marginTop: "24px",
-      transition: "all 0.15s",
-    }),
-    quizCard: (submitted, correct) => ({
-      backgroundColor: submitted
-        ? correct
-          ? "rgba(52, 211, 153, 0.06)"
-          : "rgba(255, 107, 107, 0.06)"
-        : COLORS.surface,
-      border: submitted
-        ? correct
-          ? "1px solid rgba(52, 211, 153, 0.3)"
-          : "1px solid rgba(255, 107, 107, 0.3)"
-        : `1px solid ${COLORS.border}`,
-      borderRadius: "8px",
-      padding: "24px",
-      marginBottom: "24px",
-    }),
-    optionBtn: (selected, submitted, isCorrect) => ({
-      display: "flex",
-      alignItems: "flex-start",
-      gap: "12px",
-      width: "100%",
-      textAlign: "left",
-      padding: "12px 16px",
-      marginBottom: "8px",
-      borderRadius: "6px",
-      cursor: submitted ? "default" : "pointer",
-      fontSize: "13px",
-      lineHeight: 1.5,
-      transition: "all 0.15s",
-      border: submitted
-        ? isCorrect
-          ? "1px solid rgba(52, 211, 153, 0.6)"
-          : selected
-          ? "1px solid rgba(255,107,107,0.6)"
-          : `1px solid ${COLORS.border}`
-        : selected
-        ? `1px solid rgba(232, 197, 71, 0.6)`
-        : `1px solid ${COLORS.border}`,
-      backgroundColor: submitted
-        ? isCorrect
-          ? "rgba(52, 211, 153, 0.08)"
-          : selected
-          ? "rgba(255,107,107,0.08)"
-          : "transparent"
-        : selected
-        ? "rgba(232, 197, 71, 0.06)"
-        : "transparent",
-      color: COLORS.text,
-    }),
-    optionDot: (selected, submitted, isCorrect) => ({
-      minWidth: "16px",
-      height: "16px",
-      borderRadius: "50%",
-      border: `2px solid ${
-        submitted
-          ? isCorrect
-            ? "#34D399"
-            : selected
-            ? "#FF6B6B"
-            : COLORS.border
-          : selected
-          ? COLORS.accent
-          : COLORS.muted
-      }`,
-      backgroundColor: submitted
-        ? isCorrect
-          ? "#34D399"
-          : selected
-          ? "#FF6B6B"
-          : "transparent"
-        : selected
-        ? COLORS.accent
-        : "transparent",
-      marginTop: "2px",
-      flexShrink: 0,
-    }),
-  };
+// ---- CHECKLIST ----
+const checks = [
+  {title:'Define "good output" before writing any prompts',desc:'Write down 5 concrete examples of perfect responses for your product. These become your anchors.'},
+  {title:'Identify your top 3 failure modes',desc:'For each, ask: what is the worst thing that could happen? Rank by severity × probability.'},
+  {title:'Set metric thresholds with business rationale',desc:'Every threshold needs a "why". 98% accuracy is meaningless without knowing what 2% wrong costs you.'},
+  {title:'Build a compliance checker first',desc:'Rule-based regex for prohibited outputs. It runs on every response, costs nothing, and catches the most catastrophic failures.'},
+  {title:'Create 50 "smoke test" cases before first deploy',desc:'Cover your most critical failure modes. These must pass before any deployment — no exceptions.'},
+  {title:'Set up LLM-as-judge for quality signals',desc:'Write a judge prompt for your top 2-3 subjective dimensions. Calibrate against 20 human ratings.'},
+  {title:'Plan your production sampling strategy',desc:'Decide: what % of traffic will you evaluate async? How will violations trigger alerts?'},
+  {title:'Define how failures feed the test dataset',desc:'Create a process: when a bad response is found, it gets added to the dataset within 1 week.'},
+  {title:'Set up deployment gates and block conditions',desc:'Which metrics, at what thresholds, automatically block a deployment? Document these explicitly.'},
+  {title:'Schedule quarterly dataset + threshold reviews',desc:'Metrics drift over time. Query patterns shift. Put calendar events now for the next 4 quarters.'},
+];
 
-  const renderFoundations = () => {
-    const d = content.foundations;
-    return (
-      &lt;&gt;
-        &lt;span style={styles.sectionLabel}&gt;Core Framework&lt;/span&gt;
-        {d.frameworks.map((fw, fi) =&gt; (
-          &lt;div key={fi} style={styles.card}&gt;
-            &lt;div style={styles.cardTitle}&gt;{fw.name}&lt;/div&gt;
-            &lt;div style={styles.cardDesc}&gt;{fw.description}&lt;/div&gt;
-            {fw.layers &amp;&amp;
-              fw.layers.map((l, li) =&gt; (
-                &lt;div key={li} style={styles.layer(currentModule.color)}&gt;
-                  &lt;div style={styles.layerName}&gt;{l.name}&lt;/div&gt;
-                  &lt;div style={styles.layerDesc}&gt;{l.desc}&lt;/div&gt;
-                  &lt;span style={styles.exampleTag}&gt;eg: {l.example}&lt;/span&gt;
-                &lt;/div&gt;
-              ))}
-            {fw.shifts &amp;&amp; (
-              &lt;table style={styles.shiftTable}&gt;
-                &lt;thead&gt;
-                  &lt;tr&gt;
-                    &lt;td style={{ ...styles.shiftCell, color: COLORS.muted, fontSize: "11px", letterSpacing: "0.1em", textTransform: "uppercase" }}&gt;Junior PM&lt;/td&gt;
-                    &lt;td style={{ ...styles.shiftCell, color: COLORS.muted, fontSize: "11px" }}&gt;&lt;/td&gt;
-                    &lt;td style={{ ...styles.shiftCell, color: COLORS.muted, fontSize: "11px", letterSpacing: "0.1em", textTransform: "uppercase" }}&gt;Senior PM&lt;/td&gt;
-                  &lt;/tr&gt;
-                &lt;/thead&gt;
-                &lt;tbody&gt;
-                  {fw.shifts.map((s, si) =&gt; (
-                    &lt;tr key={si} style={styles.shiftRow(si)}&gt;
-                      &lt;td style={{ ...styles.shiftCell, color: COLORS.muted }}&gt;{s.from}&lt;/td&gt;
-                      &lt;td style={{ ...styles.shiftCell, textAlign: "center" }}&gt;
-                        &lt;span style={styles.arrow}&gt;→&lt;/span&gt;
-                      &lt;/td&gt;
-                      &lt;td style={{ ...styles.shiftCell, color: currentModule.color, fontWeight: "bold" }}&gt;{s.to}&lt;/td&gt;
-                    &lt;/tr&gt;
-                  ))}
-                &lt;/tbody&gt;
-              &lt;/table&gt;
-            )}
-          &lt;/div&gt;
-        ))}
+function buildChecklist(){
+  const saved = JSON.parse(localStorage.getItem('eval-checks')||'[]');
+  const wrap = document.getElementById('checklist');
+  wrap.innerHTML = checks.map((c,i)=>`
+    <div class="check-item ${saved.includes(i)?'done':''}" onclick="toggleCheck(this,${i})">
+      <div class="check-box">${saved.includes(i)?'✓':''}</div>
+      <div>
+        <div class="check-title">${i+1}. ${c.title}</div>
+        <div class="check-desc">${c.desc}</div>
+      </div>
+    </div>
+  `).join('');
+  updateChecklistProgress();
+}
 
-        &lt;span style={styles.sectionLabel}&gt;5 Questions Every PM Must Ask About Data&lt;/span&gt;
-        &lt;div style={styles.card}&gt;
-          &lt;ul style={styles.questionList}&gt;
-            {d.keyQuestions.map((q, i) =&gt; (
-              &lt;li key={i} style={styles.questionItem}&gt;
-                &lt;span style={styles.bulletDot(currentModule.color)}&gt;{i + 1}.&lt;/span&gt;
-                {q}
-              &lt;/li&gt;
-            ))}
-          &lt;/ul&gt;
-        &lt;/div&gt;
+function toggleCheck(item,i){
+  item.classList.toggle('done');
+  const box = item.querySelector('.check-box');
+  box.textContent = item.classList.contains('done')?'✓':'';
+  const done = [...document.querySelectorAll('.check-item.done')].map((_,idx)=>idx);
+  // get actual indices
+  const allItems = [...document.querySelectorAll('.check-item')];
+  const doneIndices = allItems.map((el,idx)=>el.classList.contains('done')?idx:-1).filter(v=>v>=0);
+  localStorage.setItem('eval-checks',JSON.stringify(doneIndices));
+  updateChecklistProgress();
+}
 
-        &lt;span style={styles.sectionLabel}&gt;Case Study&lt;/span&gt;
-        &lt;div style={styles.caseStudyBox}&gt;
-          &lt;span style={styles.badge(currentModule.color)}&gt;CASE STUDY&lt;/span&gt;
-          &lt;div style={{ fontSize: "17px", fontWeight: "bold", marginBottom: "8px" }}&gt;{d.caseStudy.title}&lt;/div&gt;
-          &lt;div style={{ fontSize: "13px", color: COLORS.muted, marginBottom: "16px" }}&gt;{d.caseStudy.context}&lt;/div&gt;
-          &lt;div style={{ fontSize: "14px", color: currentModule.color, marginBottom: "20px", fontStyle: "italic" }}&gt;Challenge: {d.caseStudy.challenge}&lt;/div&gt;
-          {d.caseStudy.steps.map((s, i) =&gt; (
-            &lt;div key={i} style={styles.stepRow}&gt;
-              &lt;div style={styles.stepNum(currentModule.color)}&gt;{i + 1}&lt;/div&gt;
-              &lt;div&gt;
-                &lt;div style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "4px" }}&gt;{s.step}&lt;/div&gt;
-                &lt;div style={{ fontSize: "13px", color: COLORS.muted }}&gt;{s.detail}&lt;/div&gt;
-              &lt;/div&gt;
-            &lt;/div&gt;
-          ))}
-        &lt;/div&gt;
+function updateChecklistProgress(){
+  const total = checks.length;
+  const done = document.querySelectorAll('.check-item.done').length;
+  const pct = Math.round(done/total*100);
+  document.getElementById('checklist-fill').style.width=pct+'%';
+  document.getElementById('checklist-label').textContent=`${done} / ${total} steps complete`;
+  document.getElementById('checklist-pct').textContent=`${pct}%`;
+  updateProgress();
+}
+buildChecklist();
 
-        &lt;button style={styles.btn(currentModule.color)} onClick={() =&gt; markComplete("foundations")}&gt;
-          {completedModules.has("foundations") ? "✓ Completed" : "Mark as complete →"}
-        &lt;/button&gt;
-      &lt;/&gt;
-    );
-  };
+// ---- PROGRESS ----
+function updateProgress(){
+  const done = document.querySelectorAll('.check-item.done').length;
+  const open = document.querySelectorAll('.fp-card.open').length;
+  const total = 16;
+  const pct = Math.min(100, Math.round((done*6 + open*4) / total * 10));
+  document.getElementById('progress').style.width=pct+'%';
+  document.getElementById('progress-label').textContent=pct+'% explored';
+}
 
-  // ... rest of component unchanged ...
-}</code></pre>
-  </body>
+// ---- SCROLL OBSERVER ----
+const sections = ['s1','s2','s3','s4','s5','s6','s7'];
+const navSteps = document.querySelectorAll('.nav-step');
+const obs = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const idx = sections.indexOf(e.target.id);
+      if(idx>=0){
+        navSteps.forEach(n=>n.classList.remove('active'));
+        if(navSteps[idx]) navSteps[idx].classList.add('active');
+      }
+    }
+  });
+},{threshold:0.3});
+sections.forEach(id=>{
+  const el = document.getElementById(id);
+  if(el) obs.observe(el);
+});
+</script>
+</body>
 </html>
