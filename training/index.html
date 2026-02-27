@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Code Snippet</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        background: #0a0d14;
+        color: #e8eaef;
+        padding: 24px;
+      }
+      pre {
+        background: #111520;
+        border: 1px solid #1e2535;
+        border-radius: 8px;
+        padding: 16px;
+        overflow-x: auto;
+        line-height: 1.5;
+      }
+      code {
+        font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+          "Courier New", monospace;
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <pre><code>import { useState, useEffect, useRef } from "react";
+
+const MODULES = [
+  {
+    id: "foundations",
+    label: "Foundations",
+    icon: "◈",
+    color: "#E8C547",
+    title: "Data Strategy Foundations for PMs",
+    subtitle: "What data strategy actually means at the product level",
+  },
+  {
+    id: "b2b",
+    label: "B2B SaaS",
+    icon: "⬡",
+    color: "#5B8AF5",
+    title: "Data Strategy in B2B SaaS",
+    subtitle: "Enterprise data contracts, multi-tenancy, trust signals",
+  },
+  {
+    id: "api",
+    label: "API-First",
+    icon: "⬢",
+    color: "#4ECDC4",
+    title: "Data Strategy for API-First Products",
+    subtitle: "Developer experience, usage telemetry, platform flywheels",
+  },
+  {
+    id: "b2c",
+    label: "B2C / Marketplace",
+    icon: "◉",
+    color: "#FF6B6B",
+    title: "Data Strategy in B2C & Marketplaces",
+    subtitle: "Personalization, supply-demand balance, liquidity metrics",
+  },
+  {
+    id: "systemdesign",
+    label: "System Design",
+    icon: "▣",
+    color: "#A78BFA",
+    title: "Data System Design for PMs",
+    subtitle: "How to think architecturally without being an engineer",
+  },
+  {
+    id: "launch",
+    label: "Launch Playbook",
+    icon: "◆",
+    color: "#FB923C",
+    title: "End-to-End Product Launch with Data",
+    subtitle: "From hypothesis to instrumentation to post-launch learning",
+  },
+  {
+    id: "quiz",
+    label: "Test Yourself",
+    icon: "◐",
+    color: "#34D399",
+    title: "Synthesis & Self-Assessment",
+    subtitle: "Apply the frameworks across scenarios",
+  },
+];
+
+const content = {
+  foundations: {
+    frameworks: [
+      {
+        name: "The 3-Layer Data Strategy Stack",
+        description:
+          "Every product data strategy operates at three layers that must be aligned:",
+        layers: [
+          {
+            name: "Collection Layer",
+            desc: "What signals do you capture? Events, states, interactions, context. The PM decides WHAT to instrument, not HOW.",
+            example: "Mobile game: session start/end, level attempts, ad impressions, IAP triggers",
+          },
+          {
+            name: "Intelligence Layer",
+            desc: "How do raw signals become decisions? Metrics, models, dashboards, alerts. PM owns the question, not the query.",
+            example: "Retention D1/D7/D30, monetization ARPU/ARPDAU, LTV prediction models",
+          },
+          {
+            name: "Action Layer",
+            desc: "How does intelligence change the product? Feature flags, personalization, pricing, roadmap. The loop that closes.",
+            example: "Kill/go decisions based on CPI vs. predicted LTV ratio",
+          },
+        ],
+      },
+      {
+        name: "The Data PM Mindset Shift",
+        description: "Senior PMs think differently about data than junior ones:",
+        shifts: [
+          { from: "Reporting on data", to: "Designing for data collection" },
+          { from: "Asking 'what happened?'", to: "Asking 'what should we measure to decide?'" },
+          { from: "Waiting for analytics", to: "Defining success metrics before building" },
+          { from: "Data as evidence", to: "Data as product infrastructure" },
+          { from: "Dashboard consumer", to: "Instrumentation architect" },
+        ],
+      },
+    ],
+    keyQuestions: [
+      "What decision would this data help me make?",
+      "Who owns the metric — product, growth, finance?",
+      "What's the lagging indicator? What's the leading indicator?",
+      "How long before I have enough data to be statistically confident?",
+      "What can be gamed, and how does that change what I measure?",
+    ],
+    caseStudy: {
+      title: "Voodoo Publishing Decision Framework",
+      context:
+        "You receive a new prototype from an external studio. The game has good early organic signals but needs a go/kill decision in 2 weeks.",
+      challenge:
+        "What's your data strategy for this decision? You have a $15K test budget.",
+      steps: [
+        { step: "Define the decision", detail: "Kill/soft-launch/scale — what thresholds move you between states?" },
+        { step: "Identify leading indicators", detail: "CPI &lt; $0.40 on Tier-3, D1 retention &gt; 40%, session length &gt; 4min" },
+        { step: "Design the test", detail: "3-day UA campaign on Meta, 2 creatives, 1 GEO (PH or IN)" },
+        { step: "Set instrumentation requirements", detail: "Studio must have MMP (Adjust/AppsFlyer) + event taxonomy agreed before test" },
+        { step: "Define kill criteria upfront", detail: "If CPI &gt; $0.80 at day 2 with 500 installs: kill. No exceptions." },
+      ],
+    },
+  },
+  b2b: {
+    frameworks: [
+      {
+        name: "B2B Data Contract Framework",
+        description:
+          "In B2B, data strategy must account for trust, compliance, and multi-tenancy from day one.",
+        pillars: [
+          {
+            name: "Data Ownership",
+            icon: "⚖",
+            desc: "Who owns the data the customer generates? This is a legal AND product question. Ambiguity kills enterprise deals.",
+            pm_action: "Write an explicit data ownership clause in your product documentation, not just legal docs.",
+          },
+          {
+            name: "Data Isolation",
+            icon: "🔒",
+            desc: "Multi-tenant architectures require PMs to understand row-level security, org scoping, and audit trails.",
+            pm_action: "Define tenant isolation requirements in PRDs. 'Secure' is not a requirement — 'no cross-tenant data leakage in all API responses' is.",
+          },
+          {
+            name: "Data Portability",
+            icon: "📤",
+            desc: "GDPR/CCPA mandates export. But export design is a product decision — what format, what latency, what completeness?",
+            pm_action: "Design the export experience before you design the import. It reveals gaps in your data model.",
+          },
+          {
+            name: "Data Observability",
+            icon: "👁",
+            desc: "Enterprise customers want to know what data you collect about them. Transparency = trust = renewal.",
+            pm_action: "Build a 'data usage' page in your admin console — shows customers their data footprint.",
+          },
+        ],
+      },
+    ],
+    keyMetrics: {
+      acquisition: ["Trial-to-paid conversion by ICP segment", "Time to first value (TTFV)", "Onboarding completion rate by role"],
+      engagement: ["Feature adoption by seat tier", "DAU/MAU by user role", "API calls per seat/month"],
+      retention: ["Net Revenue Retention (NRR)", "Logo churn by cohort", "Expansion revenue rate"],
+      health: ["Support ticket rate per feature", "Error rate per customer tier", "Rollback frequency post-deploy"],
+    },
+    caseStudy: {
+      title: "Go1 — Content Intelligence Platform",
+      context:
+        "Go1 aggregates 100K+ learning courses from 200+ providers and distributes to enterprise HR platforms. You're the PM for the recommendation engine.",
+      challenge:
+        "Design a data strategy that improves content discovery while satisfying enterprise compliance requirements.",
+      approach: [
+        {
+          phase: "Discovery",
+          action: "Map the data flows: learner behavior → content metadata → employer reporting → provider analytics",
+          insight: "Discovered learners, admins, and providers have completely different data needs from the same platform",
+        },
+        {
+          phase: "Architecture",
+          action: "Define org-scoped vs. aggregated signal separation. Employer can't see cross-org learner behavior.",
+          insight: "Built a 'privacy-preserving recommendation' system using only aggregated content engagement, not individual profiles",
+        },
+        {
+          phase: "Instrumentation",
+          action: "Defined 12 canonical events: content_viewed, content_completed, content_rated, search_query, search_result_clicked...",
+          insight: "Event taxonomy became the contract between engineering, data, and product — reduced analytics debt by 60%",
+        },
+        {
+          phase: "Metrics",
+          action: "Primary: content completion rate per ICP. Secondary: search-to-completion funnel. Guardrail: employer data isolation audit pass rate",
+          insight: "Guardrail metric prevented shipping recommendation improvement that would have failed SOC2 audit",
+        },
+      ],
+    },
+  },
+  api: {
+    frameworks: [
+      {
+        name: "API-First Data Strategy: The Platform Flywheel",
+        description:
+          "API products generate data about how people USE your API, which is different from traditional product data. This usage telemetry IS the product.",
+        flywheel: [
+          { node: "Developer adopts API", next: "Usage telemetry generated" },
+          { node: "Usage telemetry → insights", next: "Identify friction &amp; power users" },
+          { node: "Reduce friction", next: "More adoption, deeper integration" },
+          { node: "Power user patterns → new endpoints", next: "Platform expands" },
+          { node: "Platform expands → more developers", next: "Back to start" },
+        ],
+      },
+      {
+        name: "API PM Data Dimensions",
+        dimensions: [
+          {
+            name: "Latency Percentiles",
+            why: "p50 is vanity. p99 is truth. Enterprise SLAs live at p99.",
+            pm_action: "Set SLO thresholds in PRD: p50 &lt; 200ms, p99 &lt; 1s, p999 &lt; 3s. Alert on p99, not average.",
+          },
+          {
+            name: "Error Budget",
+            why: "SRE concept that PMs must own. How much unreliability is acceptable per month?",
+            pm_action: "Define error budget in launch criteria. If you burn 50% in week 1, you stop shipping features.",
+          },
+          {
+            name: "Endpoint Funnel",
+            why: "Developers drop off at integration steps. Each failed API call is a conversion loss.",
+            pm_action: "Build a developer onboarding funnel: first API call → first successful response → first production call.",
+          },
+          {
+            name: "Usage Cohorts",
+            why: "Not all API users are equal. Segment by call volume, endpoint mix, error rate, recency.",
+            pm_action: "Define 'healthy API consumer' profile. Users outside that profile need proactive outreach.",
+          },
+        ],
+      },
+    ],
+    keyMetrics: {
+      activation: ["Time to first successful API call", "SDK install to hello world time", "Docs page to first call conversion"],
+      usage: ["API calls/active customer/day", "Endpoint adoption breadth", "Unique endpoints called per account"],
+      reliability: ["p99 latency by endpoint", "Error rate by error type", "Retry rate (signals reliability issues)"],
+      growth: ["API call growth rate", "New endpoint adoption velocity", "SDK version upgrade rate"],
+    },
+    caseStudy: {
+      title: "Anthropic Claude API — PM Perspective",
+      context:
+        "You're PM for the Claude API developer experience. You need a data strategy to improve activation (time-to-first-call) and identify at-risk developer accounts.",
+      challenge:
+        "Thousands of developers sign up but only 30% make their first API call within 7 days. Design a data-driven intervention system.",
+      approach: [
+        {
+          phase: "Instrumentation",
+          action: "Define the activation funnel: signup → API key created → first call attempted → first successful call → first production call",
+          insight: "Discovered 40% drop-off between 'key created' and 'first call attempted' — docs friction, not motivation problem",
+        },
+        {
+          phase: "Segmentation",
+          action: "Classify developers by intent signal: SDK choice, first endpoint called, model selected, error patterns",
+          insight: "Developers calling /messages with claude-haiku on day 1 had 3x higher 30-day retention than those starting with Opus",
+        },
+        {
+          phase: "Intervention",
+          action: "Build automated health scores: 0-100 based on recency, frequency, error rate, endpoint diversity",
+          insight: "Accounts with score &lt; 30 at day 7 had 80% churn probability — trigger docs nudge or sales outreach",
+        },
+        {
+          phase: "Feedback loop",
+          action: "A/B test onboarding variants. Measure docs page → first call conversion as primary metric.",
+          insight: "Interactive playground reduced time-to-first-call from 47min to 8min, lifted 7-day activation by 22%",
+        },
+      ],
+    },
+  },
+  b2c: {
+    frameworks: [
+      {
+        name: "B2C / Marketplace Dual-Sided Data Model",
+        description:
+          "Marketplaces have two customers generating data simultaneously. Your strategy must serve both and prevent gaming.",
+        sides: {
+          supply: {
+            label: "Supply Side",
+            color: "#FF6B6B",
+            metrics: ["Listing quality score", "Fulfillment rate", "Response time", "Cancellation rate"],
+            strategy: "Build trust signals that filter quality, creating supply-side incentives to perform",
+          },
+          demand: {
+            label: "Demand Side",
+            color: "#5B8AF5",
+            metrics: ["Search-to-click rate", "Click-to-transaction rate", "Repeat purchase rate", "NPS by category"],
+            strategy: "Use behavior signals to personalize and reduce decision fatigue",
+          },
+          intersection: {
+            label: "Marketplace Health",
+            metrics: ["Liquidity rate (searches with ≥1 transaction)", "Match quality score", "Price elasticity by category", "Take rate sustainability"],
+          },
+        },
+      },
+      {
+        name: "B2C Personalization Data Strategy",
+        stages: [
+          { stage: "Cold Start", signal: "Device type, geo, referral source, UTM params", action: "Serve popular content by cohort similarity" },
+          { stage: "Early Signal", signal: "First 3 taps/views, category affinity emerging", action: "Shift toward implicit preference model" },
+          { stage: "Established User", signal: "Historical transactions, search history, ratings", action: "Deep personalization, cross-sell, loyalty" },
+          { stage: "At-Risk User", signal: "Declining session freq, failed searches, returns", action: "Trigger winback, surface new inventory, price sensitivity" },
+          { stage: "Churned", signal: "30+ days inactive", action: "Email/push with personalized hook; else sunset" },
+        ],
+      },
+    ],
+    keyMetrics: {
+      liquidity: ["Search-to-transaction rate by category", "Avg time to first match", "GMV per active listing"],
+      engagement: ["D1/D7/D30 retention", "Sessions/user/week", "Avg session depth (pages viewed)"],
+      monetization: ["Take rate by category", "ARPU by user cohort", "LTV:CAC ratio"],
+      supply: ["New supply listing rate", "Supply churn rate", "Listing quality distribution"],
+    },
+    caseStudy: {
+      title: "Mobile Game as B2C Product — Voodoo Portfolio",
+      context:
+        "You're launching a new casual game. It's passed marketability tests (CPI $0.28, D1 retention 48%). Now you need to design the data strategy for the live operations phase.",
+      challenge:
+        "The game has ads + IAP monetization. Design a data strategy that maximizes LTV without degrading retention.",
+      approach: [
+        {
+          phase: "Segmentation",
+          action: "Classify users at D3: whales (IAP&gt;0), ad-tolerant, ad-resistant, at-risk churners",
+          insight: "Ad-resistant users shown 3+ ads/session churn at 2.4x rate — segment-based frequency caps worth $0.08 ARPDAU uplift",
+        },
+        {
+          phase: "Monetization funnel",
+          action: "Map IAP triggers: level fail &gt;3x, inventory empty, cosmetic unlock prompt. Track prompt-to-purchase rate.",
+          insight: "Level 12 had highest prompt-to-purchase rate (18%) vs. game average (4%). Redesigned IAP surface around difficulty spikes.",
+        },
+        {
+          phase: "Retention vs Revenue tradeoff",
+          action: "Build guardrail metric: if D7 retention drops &gt;3pp vs. baseline when monetization variant is live → rollback",
+          insight: "Surfaced that aggressive IAP prompting at level 8 was destroying long-term LTV despite short-term revenue spike",
+        },
+        {
+          phase: "LiveOps data model",
+          action: "Design A/B testing framework for seasonal content, limited-time offers, and difficulty curves",
+          insight: "Event-driven content improved D30 retention by 12pp — data showed players in active events churned 40% less",
+        },
+      ],
+    },
+  },
+  systemdesign: {
+    frameworks: [
+      {
+        name: "PM's System Design Mental Model",
+        description:
+          "You don't need to design the system. You need to understand it well enough to define requirements and spot risks.",
+        concepts: [
+          {
+            concept: "Event Streaming vs. Batch Processing",
+            pm_question: "Do I need to react to this data in real-time or can it wait?",
+            example: "Fraud detection → real-time (Kafka). Monthly revenue reporting → batch (Spark/Airflow).",
+            decision: "Real-time is 10x more expensive. Justify it with a business case.",
+          },
+          {
+            concept: "Data Warehouse vs. Data Lake",
+            pm_question: "Is this data structured and query-ready, or do we need raw flexibility?",
+            example: "Finance reporting → Warehouse (BigQuery, Redshift). ML feature store, raw logs → Lake (S3 + Athena).",
+            decision: "Most PMs need warehouse for metrics. Push back on lake-first approaches without clear use cases.",
+          },
+          {
+            concept: "Schema Design",
+            pm_question: "What questions will I need to ask of this data in 6 months?",
+            example: "If you don't store 'original price' at time of transaction, you can never analyze discount impact retroactively.",
+            decision: "Review data schemas before engineering finalizes them. Look for missing temporal dimensions.",
+          },
+          {
+            concept: "Event Taxonomy",
+            pm_question: "What are the canonical verbs and nouns of my product?",
+            example: "user_id, timestamp, event_name, properties{} — every event needs these 4. Avoid 'misc' properties.",
+            decision: "Own the event tracking plan as a PM artifact. It's as important as the PRD.",
+          },
+          {
+            concept: "Data Contracts",
+            pm_question: "What guarantees does upstream data provide to downstream consumers?",
+            example: "If the auth service changes user_id format, every downstream dashboard breaks. Contract prevents this.",
+            decision: "Require data contracts for all high-stakes pipelines. PM should review and sign off.",
+          },
+        ],
+      },
+      {
+        name: "The PM Data Architecture Review Checklist",
+        checklist: [
+          "✓ Are all key user actions instrumented as events?",
+          "✓ Does every event have a consistent schema (user_id, timestamp, context)?",
+          "✓ Is there a data dictionary / event catalog maintained?",
+          "✓ Are there automated data quality checks (null rates, volume anomalies)?",
+          "✓ Is sensitive PII separated from behavioral data?",
+          "✓ Is there a data retention policy defined per data type?",
+          "✓ Can I ask any product question in under 30 minutes with available tooling?",
+          "✓ Do we have a clear owner for each data pipeline?",
+          "✓ Is the cost of data infrastructure tracked as a product metric?",
+        ],
+      },
+    ],
+    caseStudy: {
+      title: "Designing Data Infrastructure for XVentures Event Matching",
+      context:
+        "XVentures connects investors, founders, and corporates at events using algorithmic matching. You're defining the data architecture requirements.",
+      challenge:
+        "The platform needs to score 500 attendees against each other in real-time, learn from match outcomes, and provide explainability for each recommendation.",
+      approach: [
+        {
+          phase: "Define data entities",
+          action: "Attendee profiles, event contexts, match requests, match outcomes, feedback signals",
+          insight: "Outcome tracking (did the match lead to a meeting?) requires a post-event feedback loop — often missed in initial design",
+        },
+        {
+          phase: "Choose processing model",
+          action: "Real-time scoring during event (streaming) + overnight model retraining (batch) + historical analysis (warehouse)",
+          insight: "Hybrid architecture: Kafka for live match requests, Redis for real-time feature cache, BigQuery for model training data",
+        },
+        {
+          phase: "Define the training signal",
+          action: "What counts as a 'good match'? Meeting scheduled, meeting held, LinkedIn connection, deal closed?",
+          insight: "'Meeting scheduled' is the only signal available same-day. 'Deal closed' is the ultimate signal but lags 6-18 months.",
+        },
+        {
+          phase: "Explainability layer",
+          action: "Every match recommendation must have human-readable rationale stored as structured data",
+          insight: "Required storing feature weights per recommendation — explainability is a PM requirement, not just a nice-to-have",
+        },
+      ],
+    },
+  },
+  launch: {
+    phases: [
+      {
+        phase: "Phase 0 — Pre-Build",
+        icon: "❶",
+        color: "#E8C547",
+        activities: [
+          {
+            activity: "Define North Star Metric",
+            detail: "One metric that best captures value delivered. Not revenue — what creates revenue.",
+            example: "Duolingo: DAUs. Airbnb: Nights booked. Voodoo game: D30 retention × ARPDAU",
+            output: "Metric documented in PRD with target, baseline, and measurement method",
+          },
+          {
+            activity: "Build the Metric Tree",
+            detail: "Decompose North Star into driver metrics. Each driver should be actionable by a team.",
+            example: "DAUs = new installs × D1 ret × D7 ret × reactivations",
+            output: "Metric tree diagram owned by PM, reviewed by data/eng/design",
+          },
+          {
+            activity: "Write the Instrumentation Spec",
+            detail: "Before writing a line of code, define every event you need to track. Include event name, properties, trigger condition.",
+            example: "level_started: {level_id, difficulty, attempt_number, session_id, timestamp}",
+            output: "Tracking plan spreadsheet — becomes the contract with analytics",
+          },
+          {
+            activity: "Define success, failure, and kill criteria",
+            detail: "What numbers move you to scale? What numbers kill the project? Write these down BEFORE you see data.",
+            example: "Success: D7 &gt; 25%, CPI &lt; $0.50 at 500 installs. Kill: CPI &gt; $1.20 OR D1 &lt; 30%.",
+            output: "Decision criteria doc, approved by stakeholders before test begins",
+          },
+        ],
+      },
+      {
+        phase: "Phase 1 — Soft Launch",
+        icon: "❷",
+        color: "#5B8AF5",
+        activities: [
+          {
+            activity: "Instrument before you acquire",
+            detail: "Never buy users before your tracking is validated. Run a 50-user seed test to verify all events fire correctly.",
+            example: "Use Mixpanel/Amplitude/Firebase to validate event schema. Check for nulls, duplicates, missing context.",
+            output: "Analytics QA sign-off before first paid install",
+          },
+          {
+            activity: "Define your monitoring dashboard",
+            detail: "Build one dashboard that answers: is this launch healthy? Should be viewable in 60 seconds.",
+            example: "Top row: CPI, installs/day, D1 retention. Second row: session length, error rate, crash rate.",
+            output: "Live dashboard linked in #launch Slack channel, updated hourly",
+          },
+          {
+            activity: "Set anomaly alerts",
+            detail: "Don't rely on humans to notice problems. Set automated alerts for out-of-range metrics.",
+            example: "Alert if D1 retention drops &gt;5pp vs. 7-day rolling average. Alert if error rate &gt; 2%.",
+            output: "Alerting rules in PagerDuty/Datadog/Grafana, tested before launch",
+          },
+        ],
+      },
+      {
+        phase: "Phase 2 — Scale Decision",
+        icon: "❸",
+        color: "#4ECDC4",
+        activities: [
+          {
+            activity: "Conduct the decision review",
+            detail: "Use your pre-defined criteria. Don't let optimism override the framework. Show data, not narrative.",
+            example: "Present: actual vs. target for each criterion. Mark green/yellow/red. Recommendation with confidence level.",
+            output: "Go/kill/iterate decision documented with rationale",
+          },
+          {
+            activity: "Identify the constraint",
+            detail: "What's the one thing limiting growth? Acquisition cost? Retention? Monetization? Focus resources on the bottleneck.",
+            example: "If CPI is good but D7 retention is low → retention is the constraint → no point scaling UA yet",
+            output: "Constraint clearly named. Next sprint focused on moving that single metric.",
+          },
+          {
+            activity: "Design the learning agenda",
+            detail: "What do you still not know? Turn unknowns into experiments with pre-registered hypotheses.",
+            example: "Unknown: Does tutorial length affect D1 retention? Experiment: 3-step vs. 8-step tutorial, 50/50 split.",
+            output: "A/B test backlog with prioritization by expected impact and confidence",
+          },
+        ],
+      },
+      {
+        phase: "Phase 3 — Live Operations",
+        icon: "❹",
+        color: "#34D399",
+        activities: [
+          {
+            activity: "Maintain the metric tree",
+            detail: "As the product matures, the metric tree evolves. Review quarterly. Kill metrics that no longer drive decisions.",
+            example: "Early stage: acquisition metrics dominate. Maturity: retention and monetization metrics dominate.",
+            output: "Living metric tree doc with last-updated date and owner",
+          },
+          {
+            activity: "Build the experimentation culture",
+            detail: "Every feature is a hypothesis. Run A/B tests by default, not by exception. Track experiment velocity.",
+            example: "Target: 3 A/B tests live at all times. Velocity: decision within 2 weeks of full ramp.",
+            output: "Experiment log with outcomes — celebrates learnings, not just wins",
+          },
+          {
+            activity: "Detect and respond to metric decay",
+            detail: "Metrics change over time as cohorts mature. Build cohort views, not just aggregate views.",
+            example: "Aggregate D7 retention is stable. But new cohort D7 is declining — a silent decay you'd miss without cohort view.",
+            output: "Weekly cohort health report. Trigger investigation if new cohort metric deviates &gt;10% from prior 4-week average.",
+          },
+        ],
+      },
+    ],
+  },
+  quiz: {
+    questions: [
+      {
+        id: 1,
+        scenario:
+          "You're PM for a B2B HR platform. The sales team wants to show prospects a dashboard of 'aggregate industry benchmarks' using customer data. What's your data strategy response?",
+        type: "multi",
+        options: [
+          "Build it immediately — it's a great value prop",
+          "Check data ownership clauses in customer contracts first",
+          "Ensure customers consent to contributing anonymized data",
+          "Define k-anonymity threshold (min customers per cohort to show)",
+          "Treat this as a new product line — requires separate data governance review",
+        ],
+        correct: [1, 2, 3, 4],
+        explanation:
+          "This is a data monetization question, not a feature question. You must verify legal permission (contracts), design consent flows, ensure statistical privacy (k-anonymity prevents reverse-engineering), and treat it as a new product with its own governance process. Building it immediately is the only wrong answer.",
+      },
+      {
+        id: 2,
+        scenario:
+          "Your API product has 10,000 active developer accounts. Average API call volume is 500 calls/day/account. You're planning a major API version upgrade. What data do you need to evaluate rollout risk?",
+        type: "multi",
+        options: [
+          "% of accounts using deprecated endpoints that will break",
+          "Call volume distribution (top 10% of accounts = what % of traffic?)",
+          "Error rate trend over the past 30 days",
+          "Accounts with zero activity in last 30 days",
+          "SDK version distribution across accounts",
+        ],
+        correct: [0, 1, 3, 4],
+        explanation:
+          "Breaking change risk = % of accounts on deprecated endpoints × their traffic share. Volume distribution reveals blast radius (if top 10% = 80% of traffic, you must migrate them first). SDK versions determine migration effort. Inactive accounts can be force-migrated with less risk. Error rate trend is useful but less critical for rollout planning — it's more of an ongoing health signal.",
+      },
+      {
+        id: 3,
+        scenario:
+          "A mobile game you're publishing hits its D1 retention target (45%) but CPI is $0.68 vs. target of $0.40. The studio wants to iterate creatives and retest. What's your decision?",
+        type: "single",
+        options: [
+          "Kill the project — it missed CPI target",
+          "Give 2 more weeks and $10K to iterate creatives",
+          "Soft launch in lower-CPI geos while iterating",
+          "Update the financial model — if LTV supports $0.68 CPI, it's viable",
+          "Escalate to leadership to get more budget",
+        ],
+        correct: [3],
+        explanation:
+          "CPI targets are proxies for LTV economics, not rules in themselves. D1 at 45% is a strong retention signal — this game likely has higher LTV than your initial model assumed. Before killing or extending blindly, recalculate: if predicted LTV at 45% D1 justifies $0.68 CPI profitably, it's a go. If not, kill. The decision is always LTV:CPI, not CPI in isolation.",
+      },
+      {
+        id: 4,
+        scenario:
+          "You're launching a marketplace feature that matches freelancers to projects. On day 3 post-launch, your match rate is 22% (target: 40%). What's your diagnosis framework?",
+        type: "multi",
+        options: [
+          "Check supply-demand ratio by category — is there enough supply to match?",
+          "Review match algorithm parameters — is the quality threshold too strict?",
+          "Check if users understand the feature — measure feature discovery rate",
+          "Analyze failed match reasons — what's blocking matches?",
+          "Look at the definition of 'match' — is 22% measuring the right thing?",
+        ],
+        correct: [0, 1, 2, 3, 4],
+        explanation:
+          "All five are correct — this is a diagnostic fan-out, not a single answer. In marketplace metrics, low performance can stem from: supply scarcity (inventory problem), algorithm miscalibration (product problem), discoverability failure (UX problem), structural blockers (data/logic problem), or metric definition error (measurement problem). A senior PM investigates all five before committing to a fix.",
+      },
+    ],
+  },
+};
+
+const COLORS = {
+  bg: "#0A0D14",
+  surface: "#111520",
+  border: "#1E2535",
+  text: "#E8EAEF",
+  muted: "#6B7894",
+  accent: "#E8C547",
+};
+
+export default function DataStrategyGuide() {
+  const [activeModule, setActiveModule] = useState("foundations");
+  const [expandedItems, setExpandedItems] = useState({});
+  const [quizAnswers, setQuizAnswers] = useState({});
+  const [quizSubmitted, setQuizSubmitted] = useState({});
+  const [completedModules, setCompletedModules] = useState(new Set());
+  const [activeTab, setActiveTab] = useState({});
+
+  const toggle = (key) => setExpandedItems((p) => ({ ...p, [key]: !p[key] }));
+
+  const markComplete = (moduleId) => {
+    setCompletedModules((p) => new Set([...p, moduleId]));
+  };
+
+  const toggleQuizAnswer = (qId, optIdx) => {
+    if (quizSubmitted[qId]) return;
+    setQuizAnswers((p) => {
+      const q = content.quiz.questions.find((q) => q.id === qId);
+      if (q.type === "single") return { ...p, [qId]: [optIdx] };
+      const prev = p[qId] || [];
+      return {
+        ...p,
+        [qId]: prev.includes(optIdx) ? prev.filter((i) => i !== optIdx) : [...prev, optIdx],
+      };
+    });
+  };
+
+  const submitQuiz = (qId) => {
+    setQuizSubmitted((p) => ({ ...p, [qId]: true }));
+  };
+
+  const currentModule = MODULES.find((m) => m.id === activeModule);
+
+  const styles = {
+    container: {
+      minHeight: "100vh",
+      backgroundColor: COLORS.bg,
+      color: COLORS.text,
+      fontFamily: "'Georgia', 'Times New Roman', serif",
+      display: "flex",
+      flexDirection: "column",
+    },
+    header: {
+      borderBottom: `1px solid ${COLORS.border}`,
+      padding: "20px 32px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      position: "sticky",
+      top: 0,
+      backgroundColor: COLORS.bg,
+      zIndex: 100,
+    },
+    headerTitle: {
+      fontSize: "13px",
+      letterSpacing: "0.2em",
+      textTransform: "uppercase",
+      color: COLORS.muted,
+      fontFamily: "monospace",
+    },
+    headerAccent: { color: COLORS.accent },
+    progress: {
+      fontSize: "12px",
+      color: COLORS.muted,
+      fontFamily: "monospace",
+    },
+    layout: {
+      display: "flex",
+      flex: 1,
+      minHeight: 0,
+    },
+    sidebar: {
+      width: "220px",
+      borderRight: `1px solid ${COLORS.border}`,
+      padding: "24px 0",
+      flexShrink: 0,
+      position: "sticky",
+      top: "61px",
+      height: "calc(100vh - 61px)",
+      overflowY: "auto",
+    },
+    navItem: (active, mod) => ({
+      display: "flex",
+      alignItems: "center",
+      gap: "10px",
+      padding: "10px 20px",
+      cursor: "pointer",
+      transition: "all 0.15s",
+      borderLeft: active ? `2px solid ${mod.color}` : "2px solid transparent",
+      backgroundColor: active ? "rgba(255,255,255,0.04)" : "transparent",
+    }),
+    navIcon: (mod, active) => ({
+      fontSize: "16px",
+      color: active ? mod.color : COLORS.muted,
+      minWidth: "20px",
+      textAlign: "center",
+    }),
+    navLabel: (active, mod) => ({
+      fontSize: "13px",
+      color: active ? COLORS.text : COLORS.muted,
+      fontFamily: "monospace",
+    }),
+    navCheck: {
+      marginLeft: "auto",
+      fontSize: "10px",
+      color: "#34D399",
+    },
+    main: {
+      flex: 1,
+      padding: "40px 48px",
+      overflowY: "auto",
+      maxWidth: "900px",
+    },
+    moduleHeader: {
+      marginBottom: "40px",
+    },
+    moduleIcon: (color) => ({
+      fontSize: "32px",
+      color: color,
+      marginBottom: "12px",
+      display: "block",
+    }),
+    moduleTitle: {
+      fontSize: "28px",
+      fontWeight: "bold",
+      marginBottom: "8px",
+      lineHeight: 1.2,
+    },
+    moduleSubtitle: {
+      fontSize: "15px",
+      color: COLORS.muted,
+      fontStyle: "italic",
+    },
+    sectionLabel: {
+      fontSize: "11px",
+      letterSpacing: "0.2em",
+      textTransform: "uppercase",
+      color: currentModule?.color || COLORS.accent,
+      fontFamily: "monospace",
+      marginBottom: "16px",
+      marginTop: "40px",
+      display: "block",
+    },
+    card: {
+      backgroundColor: COLORS.surface,
+      border: `1px solid ${COLORS.border}`,
+      borderRadius: "8px",
+      padding: "24px",
+      marginBottom: "16px",
+    },
+    cardTitle: {
+      fontSize: "16px",
+      fontWeight: "bold",
+      marginBottom: "12px",
+      color: COLORS.text,
+    },
+    cardDesc: {
+      fontSize: "14px",
+      color: COLORS.muted,
+      lineHeight: 1.6,
+      marginBottom: "20px",
+    },
+    layer: (color) => ({
+      borderLeft: `3px solid ${color || COLORS.accent}`,
+      paddingLeft: "16px",
+      marginBottom: "16px",
+    }),
+    layerName: {
+      fontSize: "14px",
+      fontWeight: "bold",
+      color: COLORS.text,
+      marginBottom: "4px",
+    },
+    layerDesc: {
+      fontSize: "13px",
+      color: COLORS.muted,
+      lineHeight: 1.5,
+      marginBottom: "8px",
+    },
+    exampleTag: {
+      display: "inline-block",
+      fontSize: "12px",
+      fontFamily: "monospace",
+      backgroundColor: "rgba(232, 197, 71, 0.08)",
+      border: "1px solid rgba(232, 197, 71, 0.2)",
+      borderRadius: "4px",
+      padding: "4px 10px",
+      color: COLORS.accent,
+    },
+    shiftTable: {
+      width: "100%",
+      borderCollapse: "collapse",
+    },
+    shiftRow: (i) => ({
+      backgroundColor: i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.02)",
+    }),
+    shiftCell: {
+      padding: "10px 16px",
+      fontSize: "13px",
+      borderBottom: `1px solid ${COLORS.border}`,
+    },
+    arrow: {
+      color: currentModule?.color || COLORS.accent,
+      fontSize: "16px",
+      padding: "0 8px",
+    },
+    questionList: {
+      listStyle: "none",
+      padding: 0,
+      margin: 0,
+    },
+    questionItem: {
+      padding: "10px 0",
+      borderBottom: `1px solid ${COLORS.border}`,
+      fontSize: "14px",
+      color: COLORS.text,
+      lineHeight: 1.5,
+      display: "flex",
+      gap: "12px",
+    },
+    bulletDot: (color) => ({
+      color: color || COLORS.accent,
+      minWidth: "16px",
+      marginTop: "2px",
+    }),
+    caseStudyBox: {
+      backgroundColor: "rgba(10,13,20,0.8)",
+      border: `1px solid ${currentModule?.color || COLORS.accent}`,
+      borderRadius: "8px",
+      padding: "24px",
+      marginBottom: "16px",
+    },
+    badge: (color) => ({
+      display: "inline-block",
+      fontSize: "11px",
+      fontFamily: "monospace",
+      backgroundColor: color + "20",
+      border: `1px solid ${color}40`,
+      borderRadius: "20px",
+      padding: "3px 12px",
+      color: color,
+      marginBottom: "12px",
+    }),
+    stepRow: {
+      display: "flex",
+      gap: "16px",
+      marginBottom: "16px",
+      alignItems: "flex-start",
+    },
+    stepNum: (color) => ({
+      minWidth: "28px",
+      height: "28px",
+      borderRadius: "50%",
+      backgroundColor: color + "20",
+      border: `1px solid ${color}60`,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: "12px",
+      fontFamily: "monospace",
+      color: color,
+      flexShrink: 0,
+    }),
+    metricGrid: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: "16px",
+    },
+    metricCard: {
+      backgroundColor: COLORS.bg,
+      border: `1px solid ${COLORS.border}`,
+      borderRadius: "6px",
+      padding: "16px",
+    },
+    metricTitle: {
+      fontSize: "11px",
+      letterSpacing: "0.15em",
+      textTransform: "uppercase",
+      color: COLORS.muted,
+      fontFamily: "monospace",
+      marginBottom: "10px",
+    },
+    metricItem: {
+      fontSize: "13px",
+      color: COLORS.text,
+      padding: "4px 0",
+      borderBottom: `1px solid rgba(255,255,255,0.04)`,
+    },
+    btn: (color) => ({
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "8px",
+      padding: "10px 20px",
+      backgroundColor: color + "15",
+      border: `1px solid ${color}40`,
+      borderRadius: "6px",
+      color: color,
+      fontSize: "13px",
+      fontFamily: "monospace",
+      cursor: "pointer",
+      marginTop: "24px",
+      transition: "all 0.15s",
+    }),
+    quizCard: (submitted, correct) => ({
+      backgroundColor: submitted
+        ? correct
+          ? "rgba(52, 211, 153, 0.06)"
+          : "rgba(255, 107, 107, 0.06)"
+        : COLORS.surface,
+      border: submitted
+        ? correct
+          ? "1px solid rgba(52, 211, 153, 0.3)"
+          : "1px solid rgba(255, 107, 107, 0.3)"
+        : `1px solid ${COLORS.border}`,
+      borderRadius: "8px",
+      padding: "24px",
+      marginBottom: "24px",
+    }),
+    optionBtn: (selected, submitted, isCorrect) => ({
+      display: "flex",
+      alignItems: "flex-start",
+      gap: "12px",
+      width: "100%",
+      textAlign: "left",
+      padding: "12px 16px",
+      marginBottom: "8px",
+      borderRadius: "6px",
+      cursor: submitted ? "default" : "pointer",
+      fontSize: "13px",
+      lineHeight: 1.5,
+      transition: "all 0.15s",
+      border: submitted
+        ? isCorrect
+          ? "1px solid rgba(52, 211, 153, 0.6)"
+          : selected
+          ? "1px solid rgba(255,107,107,0.6)"
+          : `1px solid ${COLORS.border}`
+        : selected
+        ? `1px solid rgba(232, 197, 71, 0.6)`
+        : `1px solid ${COLORS.border}`,
+      backgroundColor: submitted
+        ? isCorrect
+          ? "rgba(52, 211, 153, 0.08)"
+          : selected
+          ? "rgba(255,107,107,0.08)"
+          : "transparent"
+        : selected
+        ? "rgba(232, 197, 71, 0.06)"
+        : "transparent",
+      color: COLORS.text,
+    }),
+    optionDot: (selected, submitted, isCorrect) => ({
+      minWidth: "16px",
+      height: "16px",
+      borderRadius: "50%",
+      border: `2px solid ${
+        submitted
+          ? isCorrect
+            ? "#34D399"
+            : selected
+            ? "#FF6B6B"
+            : COLORS.border
+          : selected
+          ? COLORS.accent
+          : COLORS.muted
+      }`,
+      backgroundColor: submitted
+        ? isCorrect
+          ? "#34D399"
+          : selected
+          ? "#FF6B6B"
+          : "transparent"
+        : selected
+        ? COLORS.accent
+        : "transparent",
+      marginTop: "2px",
+      flexShrink: 0,
+    }),
+  };
+
+  const renderFoundations = () => {
+    const d = content.foundations;
+    return (
+      &lt;&gt;
+        &lt;span style={styles.sectionLabel}&gt;Core Framework&lt;/span&gt;
+        {d.frameworks.map((fw, fi) =&gt; (
+          &lt;div key={fi} style={styles.card}&gt;
+            &lt;div style={styles.cardTitle}&gt;{fw.name}&lt;/div&gt;
+            &lt;div style={styles.cardDesc}&gt;{fw.description}&lt;/div&gt;
+            {fw.layers &amp;&amp;
+              fw.layers.map((l, li) =&gt; (
+                &lt;div key={li} style={styles.layer(currentModule.color)}&gt;
+                  &lt;div style={styles.layerName}&gt;{l.name}&lt;/div&gt;
+                  &lt;div style={styles.layerDesc}&gt;{l.desc}&lt;/div&gt;
+                  &lt;span style={styles.exampleTag}&gt;eg: {l.example}&lt;/span&gt;
+                &lt;/div&gt;
+              ))}
+            {fw.shifts &amp;&amp; (
+              &lt;table style={styles.shiftTable}&gt;
+                &lt;thead&gt;
+                  &lt;tr&gt;
+                    &lt;td style={{ ...styles.shiftCell, color: COLORS.muted, fontSize: "11px", letterSpacing: "0.1em", textTransform: "uppercase" }}&gt;Junior PM&lt;/td&gt;
+                    &lt;td style={{ ...styles.shiftCell, color: COLORS.muted, fontSize: "11px" }}&gt;&lt;/td&gt;
+                    &lt;td style={{ ...styles.shiftCell, color: COLORS.muted, fontSize: "11px", letterSpacing: "0.1em", textTransform: "uppercase" }}&gt;Senior PM&lt;/td&gt;
+                  &lt;/tr&gt;
+                &lt;/thead&gt;
+                &lt;tbody&gt;
+                  {fw.shifts.map((s, si) =&gt; (
+                    &lt;tr key={si} style={styles.shiftRow(si)}&gt;
+                      &lt;td style={{ ...styles.shiftCell, color: COLORS.muted }}&gt;{s.from}&lt;/td&gt;
+                      &lt;td style={{ ...styles.shiftCell, textAlign: "center" }}&gt;
+                        &lt;span style={styles.arrow}&gt;→&lt;/span&gt;
+                      &lt;/td&gt;
+                      &lt;td style={{ ...styles.shiftCell, color: currentModule.color, fontWeight: "bold" }}&gt;{s.to}&lt;/td&gt;
+                    &lt;/tr&gt;
+                  ))}
+                &lt;/tbody&gt;
+              &lt;/table&gt;
+            )}
+          &lt;/div&gt;
+        ))}
+
+        &lt;span style={styles.sectionLabel}&gt;5 Questions Every PM Must Ask About Data&lt;/span&gt;
+        &lt;div style={styles.card}&gt;
+          &lt;ul style={styles.questionList}&gt;
+            {d.keyQuestions.map((q, i) =&gt; (
+              &lt;li key={i} style={styles.questionItem}&gt;
+                &lt;span style={styles.bulletDot(currentModule.color)}&gt;{i + 1}.&lt;/span&gt;
+                {q}
+              &lt;/li&gt;
+            ))}
+          &lt;/ul&gt;
+        &lt;/div&gt;
+
+        &lt;span style={styles.sectionLabel}&gt;Case Study&lt;/span&gt;
+        &lt;div style={styles.caseStudyBox}&gt;
+          &lt;span style={styles.badge(currentModule.color)}&gt;CASE STUDY&lt;/span&gt;
+          &lt;div style={{ fontSize: "17px", fontWeight: "bold", marginBottom: "8px" }}&gt;{d.caseStudy.title}&lt;/div&gt;
+          &lt;div style={{ fontSize: "13px", color: COLORS.muted, marginBottom: "16px" }}&gt;{d.caseStudy.context}&lt;/div&gt;
+          &lt;div style={{ fontSize: "14px", color: currentModule.color, marginBottom: "20px", fontStyle: "italic" }}&gt;Challenge: {d.caseStudy.challenge}&lt;/div&gt;
+          {d.caseStudy.steps.map((s, i) =&gt; (
+            &lt;div key={i} style={styles.stepRow}&gt;
+              &lt;div style={styles.stepNum(currentModule.color)}&gt;{i + 1}&lt;/div&gt;
+              &lt;div&gt;
+                &lt;div style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "4px" }}&gt;{s.step}&lt;/div&gt;
+                &lt;div style={{ fontSize: "13px", color: COLORS.muted }}&gt;{s.detail}&lt;/div&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          ))}
+        &lt;/div&gt;
+
+        &lt;button style={styles.btn(currentModule.color)} onClick={() =&gt; markComplete("foundations")}&gt;
+          {completedModules.has("foundations") ? "✓ Completed" : "Mark as complete →"}
+        &lt;/button&gt;
+      &lt;/&gt;
+    );
+  };
+
+  // ... rest of component unchanged ...
+}</code></pre>
+  </body>
+</html>
